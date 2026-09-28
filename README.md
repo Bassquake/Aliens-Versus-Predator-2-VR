@@ -12,14 +12,14 @@ PCVR mod for Aliens Versus Predator 2 (2001) game. This is only for Windows 10 a
 
 ![AvP2 Options 1](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/blob/main/captures/avp2-options-1.jpg)
 
-- Changing the resolution alters the menus and HUD size. Set it to 800 x 600 x 32 for now. The lower the rez the larger the HUD, the higher the rez the smaller the HUD and text is difficult to read.
+- Choose Display. Changing the resolution alters the menus and HUD size. Set it to 800 x 600 x 32 for now. The lower the rez the larger the HUD/menus, the higher the rez the smaller the HUD/menu and text is difficult to read.
 
 ![AvP2 Options 3](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/blob/main/captures/avp2-options-3.jpg)
 
-- Click PLAY so settings apply. Quit the game and then run AVP2 VR.bat in C:\proj\avp2xr so it runs the VR version properly.
+- Click OK then PLAY so settings apply. Quit the game and then run **AVP2 VR.bat** in **C:\proj\avp2xr** so it runs the VR version properly.
 
-### Tips
-To turn off various game settings, run the AVP2.exe again in the **C:\Program Files (x86)\Fox\Aliens vs. Predator 2** folder, you will be presented with the popup and choose Options:
+### Tip
+To turn off various game settings, run the **AVP2.exe** again in the **C:\Program Files (x86)\Fox\Aliens vs. Predator 2** folder, you will be presented with the popup and choose Options:
 
 ![AvP2 Options 2](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/blob/main/captures/avp2-options-2.jpg)
 
