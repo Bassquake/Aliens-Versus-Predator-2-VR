@@ -38,7 +38,7 @@ I've tried to map as many of the functions to the buttons. They can be customise
 ![Control layout](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/blob/main/captures/controllers-avp2-v1.jpg)
 
 ## Enhance the Steam Library
-Add to Steam Library as a non-Steam game:
+Add the **AVP2 VR.bat** to the Steam Library as a non-Steam game:
 
 ![Screenshot of adding non-Steam game](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/blob/main/captures/steam-add-app.png)
 
@@ -54,7 +54,7 @@ To customise the images in Steam Library so it looks nicer, download the extra z
 
 ![Screenshot of Steam options](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/blob/main/captures/steam-add-options.png)
 
-Choose Customization and change images. The image files are named the same as the artwork title:
+Choose Customisation and change images. The image files are named the same as the artwork title:
 
 ![Screenshot of Steam options](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/blob/main/captures/steam-add-images.png)
 
