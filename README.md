@@ -13,7 +13,7 @@ PCVR mod for Aliens Versus Predator 2 (2001) game. This is only for Windows 10 a
 ![Easy Installer](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/blob/main/captures/avp2-easy-installer-step3.jpg)
 
 - May as well install the **SP map update** and **MP map update** too. Once done, exit the Easy Installer.
-- Download the zip in [Releases](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/releases) and extract to a folder somewhere on your drive.
+- Download the **avp2-vr-x.x.zip** in [Releases](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/releases) and extract to a folder somewhere on your drive.
 - Go to that folder and right click and Run As Administrator on **install.bat**. This will copy the necessary files into the game folder.
 - Before running the VR version we need make sure the display is set to 640x480. Run the **AVP2.exe** in **C:\Program Files (x86)\Fox\Aliens vs. Predator 2**. After a while you'll see a popup:
 
