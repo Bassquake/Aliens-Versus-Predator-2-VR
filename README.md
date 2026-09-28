@@ -2,16 +2,17 @@
 PCVR mod for Aliens Versus Predator 2 (2001) game. This is only for Windows 10 and above. Untested on Linux using Proton. Should work on medium graphics cards from Nvidia 2060 and upwards.
 
 > [!CAUTION]
-> You need the original installation game files. The 2 disc CD version can be found on eBay or maybe archive.org.
+> You need the original installation game files. The 2 disc CD version can be found on eBay or maybe archive.org. This build is in playable state. I'm not primarily a programmer, this was done with a lot of help from various AI like Claude, Copilot and Gemini.
 
 ## Installation
 - Install the Aliens Versus Predator 2 game using it's default folder location. (C:\Program Files (x86)\Fox\Aliens vs. Predator 2).
-- Download the zip in Releases and extract to the game folder **C:\Program Files (x86)\Fox\Aliens vs. Predator 2**. You may need to copy to Documents then copy to the game folder as needs Administrator access.
+- Download the zip in Releases and extract to a folder somewhere on your drive.
+- Go to that folder and right click and Run As Administrator on **install.bat**. This will copy the necessary files into the game folder.
 - Before running the VR version we need to set some options of the game. Run the AVP2.exe in C:\Program Files (x86)\Fox\Aliens vs. Predator 2. After a while you'll see a popup.
 
 ![AvP2 Options 1](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/blob/main/captures/avp2-options-1.jpg)
 
-- Choose Display. Changing the resolution alters the menus and HUD size. Set it to 800 x 600 x 32 for now. The lower the rez the larger the HUD/menus, the higher the rez the smaller the HUD/menu and text is difficult to read.
+- Choose Display. Changing the resolution alters the menus and HUD size. Set it to 640 x 480 x 32 for now. The lower the rez the larger the HUD/menus, the higher the rez the smaller the HUD/menu and text is difficult to read.
 
 ![AvP2 Options 3](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/blob/main/captures/avp2-options-3.jpg)
 
