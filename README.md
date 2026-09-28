@@ -1,7 +1,7 @@
 # Aliens Versus Predator 2: VR
 PCVR mod for Aliens Versus Predator 2 (2001) game. This is only for Windows 10 and above. Untested on Linux using Proton. Should work on medium graphics cards from Nvidia 2060 and upwards.
 
-> !CAUTION
+> [!CAUTION]
 > You need the original installation game files. The 2 disc CD version can be found on eBay or maybe archive.org.
 
 ## Installation
