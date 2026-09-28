@@ -6,8 +6,7 @@ PCVR mod for Aliens Versus Predator 2 (2001) game. This is only for Windows 10 a
 
 ## Installation
 - Install the Aliens Versus Predator 2 game using it's default folder location. (C:\Program Files (x86)\Fox\Aliens vs. Predator 2).
-- Download the zip in Releases and extract to a folder like so: **C:\proj\avp2xr**
-- In the avp2xr folder, right click the **install.bat** and Run as Administrator. This will install the necessary dlls and files into the game folder.
+- Download the zip in Releases and extract to the game folder **C:\Program Files (x86)\Fox\Aliens vs. Predator 2**
 - Before running the VR version we need to set some options of the game. Run the AVP2.exe in C:\Program Files (x86)\Fox\Aliens vs. Predator 2. After a while you'll see a popup.
 
 ![AvP2 Options 1](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/blob/main/captures/avp2-options-1.jpg)
@@ -16,7 +15,7 @@ PCVR mod for Aliens Versus Predator 2 (2001) game. This is only for Windows 10 a
 
 ![AvP2 Options 3](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/blob/main/captures/avp2-options-3.jpg)
 
-- Click OK then PLAY so settings apply. Quit the game and then run **AVP2 VR.bat** in **C:\proj\avp2xr** so it runs the VR version properly.
+- Click OK then PLAY so settings apply. Quit the game and then run **AVP2 VR.bat** in **C:\Program Files (x86)\Fox\Aliens vs. Predator 2** so it runs the VR version properly.
 
 ### Tip
 To turn off various game settings, run the **AVP2.exe** again in the **C:\Program Files (x86)\Fox\Aliens vs. Predator 2** folder, you will be presented with the popup and choose Options:
