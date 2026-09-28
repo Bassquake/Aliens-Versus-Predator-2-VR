@@ -28,4 +28,4 @@ I like to **Disable Logos** so they don't keep loading every time I start the ga
 ## Controls
 I've tried to map as many of the functions to the buttons. They can be customised by editing the **avp2xr.ini** located in **C:\proj\avp2xr\deploy**. Other settings can be found in there to customise positioning of HUD and weapons.
 
-![Control layout](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/blob/main/captures/avp2vr-controllers.jpg)
+![Control layout](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/blob/main/captures/controllers-avp2-v1.jpg)
