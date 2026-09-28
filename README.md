@@ -29,3 +29,26 @@ I like to **Disable Logos** so they don't keep loading every time I start the ga
 I've tried to map as many of the functions to the buttons. They can be customised by editing the **avp2xr.ini** located in **C:\Program Files (x86)\Fox\Aliens vs. Predator 2**. A number of other settings can be found in there to customise positioning of HUD and weapons etc.
 
 ![Control layout](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/blob/main/captures/controllers-avp2-v1.jpg)
+
+## Enhance the Steam Library
+Add to Steam Library as a non-Steam game:
+
+![Screenshot of adding non-Steam game](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/blob/main/captures/steam-add-app.png)
+
+Rename the shortcut by going to Properties:
+
+![Screenshot of Steam options](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/blob/main/captures/steam-add-options.png)
+
+Then name the shortcut seen here and set the **Include in VR Library** to on:
+
+![Screenshot of Shortcut naming](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/blob/main/captures/steam-custom-name.png)
+
+To customise the images in Steam Library so it looks nicer, download the extra zip file **steamvr-custom-images-avp2.zip** in Releases page, unzip the images from steamvr-custom-images-avp2.zip somewhere. Then click the gear icon and select Properties:
+
+![Screenshot of Steam options](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/blob/main/captures/steam-add-options.png)
+
+Choose Customization and change images. The image files are named the same as the artwork title:
+
+![Screenshot of Steam options](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/blob/main/captures/steam-add-images.png)
+
+Finally, to play, on your headset, run Steam Link and navigate to the game in your library. Simply click Play! (Virtual Desktop is untested).
