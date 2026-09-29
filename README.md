@@ -2,7 +2,7 @@
 PCVR mod for Aliens Versus Predator 2 (2001) game. This is for Windows 10 and above. Untested on Linux. Should work on medium graphics cards from Nvidia 2060 and upwards.
 
 > [!CAUTION]
-> You need the original installation game files. The 2 disc CD version can be found on eBay or maybe archive.org. This build is in playable state. I'm not primarily a programmer, this was done with a lot of help from various AI like Claude, Copilot and Gemini.
+> You need the original installation game files. The 2 disc CD version can be found on eBay or maybe archive.org. This build is in playable state. Some weapon models needs a bit of attention as they aren't designed to be looked at from different angles! I'm not primarily a programmer, this was done with a lot of help from various AI like Claude, Copilot and Gemini.
 
 ## Installation
 - Install the Aliens Versus Predator 2 game into its default folder location: **C:\Program Files (x86)\Fox\Aliens vs. Predator 2)**.
