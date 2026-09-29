@@ -1,5 +1,5 @@
 # Aliens Versus Predator 2: VR
-PCVR mod for Aliens Versus Predator 2 (2001) game. This is only for Windows 10 and above. Untested on Linux. Should work on medium graphics cards from Nvidia 2060 and upwards.
+PCVR mod for Aliens Versus Predator 2 (2001) game. This is for Windows 10 and above. Untested on Linux. Should work on medium graphics cards from Nvidia 2060 and upwards.
 
 > [!CAUTION]
 > You need the original installation game files. The 2 disc CD version can be found on eBay or maybe archive.org. This build is in playable state. I'm not primarily a programmer, this was done with a lot of help from various AI like Claude, Copilot and Gemini.
@@ -15,10 +15,13 @@ PCVR mod for Aliens Versus Predator 2 (2001) game. This is only for Windows 10 a
 - May as well install the **SP map update** and **MP map update** too. Once done, exit the Easy Installer.
 - Download my **avp2-vr-x.x.zip** in [Releases](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/releases) and extract to a folder somewhere on your drive.
 - Go to the extracted folder and right click and Run As Administrator on **install.bat**. This will copy the necessary files into the game folder.
-- Double click **AVP2 VR.bat** to run (in **C:\Program Files (x86)\Fox\Aliens vs. Predator 2**) and AvP 2 will start in VR on your headset!
+
+![Install Files](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/blob/main/captures/avp2-install-files-results.jpg)
+
+- Now double click **AVP2 VR.bat** to run (in **C:\Program Files (x86)\Fox\Aliens vs. Predator 2**) and AvP 2 will start in VR on your headset!
 
 ## Controls
-I've tried to map as many of the functions to the buttons. They can be customised by editing the **avp2xr.ini** located in **C:\Program Files (x86)\Fox\Aliens vs. Predator 2**.
+I've tried to map as many of the functions to the controllers buttons as there are a lot more than Aliens Versus Predator had! They can be customised by editing the **avp2xr.ini** located in **C:\Program Files (x86)\Fox\Aliens vs. Predator 2**.
 
 ![Control layout](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/blob/main/captures/controllers-avp2-v1.jpg)
 
