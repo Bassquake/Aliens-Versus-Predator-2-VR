@@ -16,9 +16,13 @@ Files
   install.bat/uninstall.bat  copy to / remove from the game folder (run as administrator); install.bat also
                            installs deploy\avp2xr.ini (the settings file to edit; the old one is kept as .bak)
                            and deploy\vrrez\cshell.dll (see "Loading the VR cshell" below)
-  "AVP2 VR (SteamVR runtime).bat"  launches the game in VR with the active OpenXR runtime (SteamVR)
-  "AVP2 VR (Meta runtime).bat"     the same, with XR_RUNTIME_JSON pointing at the Meta 32-bit runtime
-  "AVP2 VR (stereo off test).bat"  the VR cshell with VREnable 0 (flat virtual screen), for diagnosis
+  "AVP2VR_(SteamVR_runtime).bat"  launches the game in VR with SteamVR's 32-bit OpenXR runtime (found through
+                           openvrpaths.vrpath or Steam's registry key), whichever runtime is the system's active
+                           one; SteamVR starts by itself. Use this with Meta Quest Link as well (Link + SteamVR).
+  "AVP2VR_(Meta_runtime).bat"     the same, with XR_RUNTIME_JSON pointing at the Meta 32-bit runtime. Link 1.208's
+                           32-bit runtime crashes all 32-bit OpenXR programs in xrCreateSession (in Meta's
+                           RuntimeIPCServiceClient_32.dll; the 64-bit one works), so this crashes until Meta fixes it.
+  "AVP2VR_(stereo_off_test).bat"  the VR cshell with VREnable 0 (flat virtual screen), for diagnosis
   The launchers can be added to Steam as a non-Steam game (set as VR) and started from SteamVR:
   Steam's 64-bit XR_RUNTIME_JSON is cleared by the launcher (and ignored by the proxy if still set).
   The launchers also pass avp2xr.ini's GameResolution (e.g. 640x480x32) on the command line, which

@@ -1,5 +1,7 @@
 @echo off
-rem Same as "AVP2 VR (SteamVR runtime).bat", but uses the Meta/Oculus OpenXR runtime for this launch only.
+rem Same as "AVP2VR_(SteamVR_runtime).bat", but uses the Meta/Oculus OpenXR runtime for this launch only.
+rem Meta Quest Link 1.208's 32-bit runtime crashes every 32-bit OpenXR program in xrCreateSession (the
+rem Khronos hello_xr sample too), so until Meta fixes that, use the SteamVR launcher with Link.
 set XR_RUNTIME_JSON=C:\Program Files\Oculus\Support\oculus-runtime\oculus_openxr_32.json
 cd /d "C:\Program Files (x86)\Fox\Aliens vs. Predator 2"
 rem The display mode from avp2xr.ini [VR] GameResolution (e.g. 640x480x32), whatever the original

@@ -16,7 +16,7 @@ if exist "%GAME%\avp2xr.ini" copy /y "%GAME%\avp2xr.ini" "%GAME%\avp2xr.ini.bak"
 copy /y "%~dp0deploy\avp2xr.ini" "%GAME%\" >nul || (echo Failed to copy avp2xr.ini & pause & exit /b 1)
 echo Installed avp2xr.ini
 rem The VR cshell.dll goes in its own vrrez folder in the game folder: the engine only loads game
-rem DLLs from its -rez list (loose ones in the game folder are ignored), so the "AVP2 VR" launchers
+rem DLLs from its -rez list (loose ones in the game folder are ignored), so the "AVP2VR" launchers
 rem add that folder with -rez vrrez, and its cshell.dll overrides the retail one in AVP2DLL.REZ.
 if not exist "%GAME%\vrrez" mkdir "%GAME%\vrrez"
 copy /y "%~dp0deploy\vrrez\cshell.dll" "%GAME%\vrrez\" >nul || (echo Failed to copy vrrez\cshell.dll & pause & exit /b 1)
