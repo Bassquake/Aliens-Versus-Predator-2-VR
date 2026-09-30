@@ -1,0 +1,69 @@
+# Compiler and linker intermediates
+*.obj
+*.pch
+*.ilk
+*.idb
+*.res
+*.exp
+*.map
+*.pdb
+
+# MSBuild bookkeeping
+*.tlog
+*.lastbuildstate
+*.recipe
+*.log
+
+# Build results
+*.lto
+
+# Visual Studio state
+.vs/
+*.user
+*.suo
+
+# Misc
+*.pyc
+*.raw
+*.stackdump
+
+# Build output folders
+proj/AVP2/*/Debug/
+proj/AVP2/*/Release/
+proj/AVP2/*/Demo_Debug/
+proj/AVP2/*/Demo_Release/
+proj/AVP2/*/demo/
+proj/AVP2/*/final/
+proj/AVP2/*/*___Win32_*/
+proj/AVP2/AVP2/
+proj/AVP2/AVP2Serv.exe
+proj/avp2xr/bin/
+proj/avp2xr/obj/
+
+# Test scratch and old snapshots
+proj/avp2xr/dgtest/*
+!proj/avp2xr/dgtest/.gitkeep
+!proj/avp2xr/dgtest/d3d11.dll
+!proj/avp2xr/dgtest/openxr_loader.dll
+!proj/avp2xr/dgtest/dgVoodoo.conf
+!proj/avp2xr/dgtest/DDraw.dll
+!proj/avp2xr/dgtest/D3DImm.dll
+proj/avp2xr/dgtest2/*
+!proj/avp2xr/dgtest2/.gitkeep
+!proj/avp2xr/dgtest2/d3d11.dll
+!proj/avp2xr/dgtest2/openxr_loader.dll
+!proj/avp2xr/dgtest2/dgVoodoo.conf
+!proj/avp2xr/dgtest2/DDraw.dll
+!proj/avp2xr/dgtest2/D3DImm.dll
+proj/avp2xr/test/backup/
+proj/avp2xr/test/butetest/*.exe
+
+# Personal settings
+proj/avp2xr/.claude/settings.local.json
+
+# Third-party: zips duplicate the extracted folders; only Win32 is used
+proj/thirdparty/*.zip
+proj/thirdparty/openxr_loader_windows/x64/
+proj/thirdparty/openxr_loader_windows/x64_uwp/
+proj/thirdparty/openxr_loader_windows/Win32_uwp/
+proj/thirdparty/openxr_loader_windows/ARM64_uwp/

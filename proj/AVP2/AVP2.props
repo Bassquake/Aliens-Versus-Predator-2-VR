@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Shared settings for all AVP2 projects (Visual Studio 2022 / v143, Win32).
+
+  Replaces the VC6 global "Tools/Options/Directories" setup from readme.txt and
+  the environment from SetBuildVars.bat. Each variable can still be overridden
+  by setting an environment variable of the same name before starting VS.
+
+    PROJ_DIR        root of the source tree            (default: parent of this folder)
+    LT2_DIR         LithTech engine headers/libs       (default: $(PROJ_DIR)\LT2)
+    AVP2_DIR        game code directory                (default: this folder)
+    AVP2_BUILD_DIR  where built dlls/lto are copied    (default: $(AVP2_DIR)\AVP2)
+    DXSDK_DIR       DirectX SDK root (DX8.1 or later, needed for d3dtypes.h)
+-->
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="UserMacros">
+    <AVP2_DIR Condition="'$(AVP2_DIR)'==''">$(MSBuildThisFileDirectory.TrimEnd('\'))</AVP2_DIR>
+    <PROJ_DIR Condition="'$(PROJ_DIR)'==''">$([System.IO.Path]::GetDirectoryName('$(AVP2_DIR)'))</PROJ_DIR>
+    <LT2_DIR Condition="'$(LT2_DIR)'==''">$(PROJ_DIR)\LT2</LT2_DIR>
+    <AVP2_BUILD_DIR Condition="'$(AVP2_BUILD_DIR)'==''">$(AVP2_DIR)\AVP2</AVP2_BUILD_DIR>
+    <AVP2_DXINC Condition="'$(DXSDK_DIR)'!=''">$(DXSDK_DIR.TrimEnd('\'))\Include;</AVP2_DXINC>
+    <AVP2_DXLIB Condition="'$(DXSDK_DIR)'!=''">$(DXSDK_DIR.TrimEnd('\'))\Lib\x86;$(DXSDK_DIR.TrimEnd('\'))\Lib;</AVP2_DXLIB>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(AVP2_DXINC)$(LT2_DIR)\lithshared\incs;$(LT2_DIR)\lithshared\wonapi;$(LT2_DIR)\sdk\inc;$(LT2_DIR)\sdk\inc\compat</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;_CRT_NONSTDC_NO_DEPRECATE;_WINSOCK_DEPRECATED_NO_WARNINGS;_SILENCE_STDEXT_HASH_DEPRECATION_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <!-- VC6-era code: relaxed conformance, VC6 for-loop scoping, and wchar_t as
+           unsigned short so declarations match the prebuilt VC6 LithTech libraries. -->
+      <ConformanceMode>false</ConformanceMode>
+      <ForceConformanceInForLoopScope>false</ForceConformanceInForLoopScope>
+      <TreatWChar_tAsBuiltInType>false</TreatWChar_tAsBuiltInType>
+      <SDLCheck>false</SDLCheck>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+    </ClCompile>
+    <ResourceCompile>
+      <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories);$(LT2_DIR)\lithshared\incs;$(LT2_DIR)\sdk\inc</AdditionalIncludeDirectories>
+    </ResourceCompile>
+    <Link>
+      <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories);$(AVP2_DXLIB)$(LT2_DIR)\lithshared\libs\Release;$(LT2_DIR)\lithshared\libs\Debug</AdditionalLibraryDirectories>
+      <!-- The prebuilt LithTech libraries were built with VC6: they have no SafeSEH
+           tables and use the pre-2015 stdio symbols. -->
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+      <AdditionalDependencies>legacy_stdio_definitions.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <!-- VC6's old iostream library (libcimt) no longer exists; the prebuilt libraries
+           still request it by default-lib directive. -->
+      <IgnoreSpecificDefaultLibraries>libcimt.lib;libcimtd.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <BuildMacro Include="PROJ_DIR"><Value>$(PROJ_DIR)</Value></BuildMacro>
+    <BuildMacro Include="LT2_DIR"><Value>$(LT2_DIR)</Value></BuildMacro>
+    <BuildMacro Include="AVP2_DIR"><Value>$(AVP2_DIR)</Value></BuildMacro>
+    <BuildMacro Include="AVP2_BUILD_DIR"><Value>$(AVP2_BUILD_DIR)</Value></BuildMacro>
+  </ItemGroup>
+</Project>

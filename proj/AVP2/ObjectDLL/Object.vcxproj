@@ -1,0 +1,806 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="17.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Demo Release|Win32">
+      <Configuration>Demo Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Demo Debug|Win32">
+      <Configuration>Demo Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Final|Win32">
+      <Configuration>Final</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>17.0</VCProjectVersion>
+    <ProjectGuid>{A75A4D2A-A4A5-5B37-A443-5EFAE4FDD614}</ProjectGuid>
+    <RootNamespace>Object</RootNamespace>
+    <ProjectName>Object</ProjectName>
+    <Keyword>Win32Proj</Keyword>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Demo Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Demo Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Final|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings" />
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\AVP2.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\AVP2.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Demo Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\AVP2.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Demo Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\AVP2.props" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+    <Import Project="..\AVP2.props" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <OutDir>release\</OutDir>
+    <IntDir>Release\</IntDir>
+    <TargetName>Object</TargetName>
+    <TargetExt>.lto</TargetExt>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <OutDir>debug\</OutDir>
+    <IntDir>Debug\</IntDir>
+    <TargetName>Object</TargetName>
+    <TargetExt>.lto</TargetExt>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Demo Release|Win32'">
+    <OutDir>demo\release\</OutDir>
+    <IntDir>Object___Win32_Demo_Release\</IntDir>
+    <TargetName>Object</TargetName>
+    <TargetExt>.lto</TargetExt>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Demo Debug|Win32'">
+    <OutDir>demo\debug\</OutDir>
+    <IntDir>Object___Win32_Demo_Debug\</IntDir>
+    <TargetName>Object</TargetName>
+    <TargetExt>.lto</TargetExt>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">
+    <OutDir>final\</OutDir>
+    <IntDir>Object___Win32_Final\</IntDir>
+    <TargetName>Object</TargetName>
+    <TargetExt>.lto</TargetExt>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <Optimization>MaxSpeed</Optimization>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories>..\ServerRes;..\ClientShellDLL;..\ObjectDLL;..\shared;$(LT2_DIR)\sdk\inc;$(LT2_DIR)\sdk\inc\compat;$(LT2_DIR)\lithshared\incs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;_OBJECTBUILD;WIN32;_WINDOWS;_AVP2BUILD;LT15_COMPAT;NO_PRAGMA_LIBS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalDependencies>wsock32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>if not exist "$(AVP2_BUILD_DIR)" mkdir "$(AVP2_BUILD_DIR)"
+
+copy /Y "$(TargetPath)" "$(AVP2_BUILD_DIR)\object.lto"</Command>
+      <Message>Copying $(TargetFileName) to the game directory</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories>..\ServerRes;..\ClientShellDLL;..\ObjectDLL;..\shared;$(LT2_DIR)\sdk\inc;$(LT2_DIR)\sdk\inc\compat;$(LT2_DIR)\lithshared\incs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;_OBJECTBUILD;WIN32;_WINDOWS;_AVP2BUILD;LT15_COMPAT;NO_PRAGMA_LIBS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalDependencies>wsock32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(LT2_DIR)\lithshared\libs\debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>libcmt.lib;%(IgnoreSpecificDefaultLibraries)</IgnoreSpecificDefaultLibraries>
+      <ProgramDatabaseFile>$(OutDir)$(TargetName).pdb</ProgramDatabaseFile>
+    </Link>
+    <PostBuildEvent>
+      <Command>if not exist "$(AVP2_BUILD_DIR)" mkdir "$(AVP2_BUILD_DIR)"
+
+copy /Y "$(TargetPath)" "$(AVP2_BUILD_DIR)\object.lto"</Command>
+      <Message>Copying $(TargetFileName) to the game directory</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Demo Release|Win32'">
+    <ClCompile>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <Optimization>MaxSpeed</Optimization>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories>..\ServerRes;..\ClientShellDLL;..\ObjectDLL;..\shared;$(LT2_DIR)\sdk\inc;$(LT2_DIR)\sdk\inc\compat;$(LT2_DIR)\lithshared\incs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;_DEMO;_OBJECTBUILD;WIN32;_WINDOWS;_AVP2BUILD;LT15_COMPAT;NO_PRAGMA_LIBS;_FINAL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalDependencies>wsock32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ProgramDatabaseFile>Demo_Release\Object.pdb</ProgramDatabaseFile>
+    </Link>
+    <PostBuildEvent>
+      <Command>if not exist "$(AVP2_BUILD_DIR)" mkdir "$(AVP2_BUILD_DIR)"
+
+copy /Y "$(TargetPath)" "$(AVP2_BUILD_DIR)\object.lto"</Command>
+      <Message>Copying $(TargetFileName) to the game directory</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Demo Debug|Win32'">
+    <ClCompile>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories>..\ServerRes;..\ClientShellDLL;..\ObjectDLL;..\shared;$(LT2_DIR)\sdk\inc;$(LT2_DIR)\sdk\inc\compat;$(LT2_DIR)\lithshared\incs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;_DEMO;_OBJECTBUILD;WIN32;_WINDOWS;_AVP2BUILD;LT15_COMPAT;NO_PRAGMA_LIBS;_FINAL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalDependencies>wsock32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ProgramDatabaseFile>Demo_Debug\Object.pdb</ProgramDatabaseFile>
+    </Link>
+    <PostBuildEvent>
+      <Command>if not exist "$(AVP2_BUILD_DIR)" mkdir "$(AVP2_BUILD_DIR)"
+
+copy /Y "$(TargetPath)" "$(AVP2_BUILD_DIR)\object.lto"</Command>
+      <Message>Copying $(TargetFileName) to the game directory</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">
+    <ClCompile>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <RuntimeTypeInfo>true</RuntimeTypeInfo>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <Optimization>MaxSpeed</Optimization>
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <AdditionalIncludeDirectories>..\ServerRes;..\ClientShellDLL;..\ObjectDLL;..\shared;$(LT2_DIR)\sdk\inc;$(LT2_DIR)\sdk\inc\compat;$(LT2_DIR)\lithshared\incs;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_FINAL;NDEBUG;_OBJECTBUILD;WIN32;_WINDOWS;_AVP2BUILD;LT15_COMPAT;NO_PRAGMA_LIBS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <ResourceCompile>
+      <Culture>0x0409</Culture>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ResourceCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalDependencies>wsock32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <ProgramDatabaseFile>Final\Object.pdb</ProgramDatabaseFile>
+    </Link>
+    <PostBuildEvent>
+      <Command>if not exist "$(AVP2_BUILD_DIR)" mkdir "$(AVP2_BUILD_DIR)"
+
+copy /Y "$(TargetPath)" "$(AVP2_BUILD_DIR)\object.lto"</Command>
+      <Message>Copying $(TargetFileName) to the game directory</Message>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="$(LT2_DIR)\lithshared\butemgr\butemgr.cpp" />
+    <ClCompile Include="$(LT2_DIR)\lithshared\vc6compat\vc6compat.cpp" />
+    <ClCompile Include="AI.cpp" />
+    <ClCompile Include="AIAlien.cpp" />
+    <ClCompile Include="AIButeMgr.cpp" />
+    <ClCompile Include="AICorporate.cpp" />
+    <ClCompile Include="AIDunyaExosuit.cpp" />
+    <ClCompile Include="AIEisenberg.cpp" />
+    <ClCompile Include="AIExosuit.cpp" />
+    <ClCompile Include="AIMarine.cpp" />
+    <ClCompile Include="AIMiser.cpp" />
+    <ClCompile Include="AIPath.cpp" />
+    <ClCompile Include="AIPathMgr.cpp" />
+    <ClCompile Include="AIPlayer.cpp" />
+    <ClCompile Include="AIPredator.cpp" />
+    <ClCompile Include="AIQueen.cpp" />
+    <ClCompile Include="AIRykov.cpp" />
+    <ClCompile Include="AIRykovExosuit.cpp" />
+    <ClCompile Include="AIScriptCommands.cpp" />
+    <ClCompile Include="AISense.cpp" />
+    <ClCompile Include="AISenseHear.cpp" />
+    <ClCompile Include="AISenseMgr.cpp" />
+    <ClCompile Include="AISenseSee.cpp" />
+    <ClCompile Include="AIState.cpp" />
+    <ClCompile Include="AITarget.cpp" />
+    <ClCompile Include="AIUtils.cpp" />
+    <ClCompile Include="AIVolume.cpp" />
+    <ClCompile Include="AIVolumeMgr.cpp" />
+    <ClCompile Include="AvoidancePath.cpp" />
+    <ClCompile Include="BidMgr.cpp" />
+    <ClCompile Include="Goal.cpp" />
+    <ClCompile Include="ObstacleMgr.cpp" />
+    <ClCompile Include="ParseUtils.cpp" />
+    <ClCompile Include="Sense.cpp" />
+    <ClCompile Include="SimpleAI.cpp" />
+    <ClCompile Include="SimpleAIAlien.cpp" />
+    <ClCompile Include="SimpleNode.cpp" />
+    <ClCompile Include="SimpleNodeMgr.cpp" />
+    <ClCompile Include="AIStrategy.cpp" />
+    <ClCompile Include="AIStrategyAdvance.cpp" />
+    <ClCompile Include="AIStrategyApproachTarget.cpp" />
+    <ClCompile Include="AIStrategyEngageTarget.cpp" />
+    <ClCompile Include="AIStrategyFollowPath.cpp" />
+    <ClCompile Include="AIStrategyMove.cpp" />
+    <ClCompile Include="AIStrategyRetreat.cpp" />
+    <ClCompile Include="AIStrategySetFacing.cpp" />
+    <ClCompile Include="AIAlarm.cpp" />
+    <ClCompile Include="AIAlienAttack.cpp" />
+    <ClCompile Include="AIAttack.cpp" />
+    <ClCompile Include="AIChase.cpp" />
+    <ClCompile Include="AICombatGoal.cpp" />
+    <ClCompile Include="AICower.cpp" />
+    <ClCompile Include="AIInvestigate.cpp" />
+    <ClCompile Include="AILurk.cpp" />
+    <ClCompile Include="AINodeCheck.cpp" />
+    <ClCompile Include="AIPatrol.cpp" />
+    <ClCompile Include="AIRetreat.cpp" />
+    <ClCompile Include="AIScript.cpp" />
+    <ClCompile Include="AISnipe.cpp" />
+    <ClCompile Include="AINode.cpp" />
+    <ClCompile Include="AINodeAlarm.cpp" />
+    <ClCompile Include="AINodeCover.cpp" />
+    <ClCompile Include="AINodeLadder.cpp" />
+    <ClCompile Include="AINodeMgr.cpp" />
+    <ClCompile Include="AINodePatrol.cpp" />
+    <ClCompile Include="AINodeSnipe.cpp" />
+    <ClCompile Include="AINodeVolume.cpp" />
+    <ClCompile Include="AINodeWallWalk.cpp" />
+    <ClCompile Include="AIActionMisc.cpp" />
+    <ClCompile Include="AIActionMoveTo.cpp" />
+    <ClCompile Include="AIAnimButeMgr.cpp" />
+    <ClCompile Include="..\Shared\AnimationButeMgr.cpp" />
+    <ClCompile Include="AttachButeMgr.cpp" />
+    <ClCompile Include="..\Shared\CharacterButeMgr.cpp" />
+    <ClCompile Include="..\Shared\DebrisMgr.cpp" />
+    <ClCompile Include="..\Shared\FXButeMgr.cpp" />
+    <ClCompile Include="..\Shared\GameButeMgr.cpp" />
+    <ClCompile Include="..\Shared\GlobalMgr.cpp" />
+    <ClCompile Include="..\Shared\MissionMgr.cpp" />
+    <ClCompile Include="..\Shared\ModelButeMgr.cpp" />
+    <ClCompile Include="MusicMgr.cpp" />
+    <ClCompile Include="..\Shared\ObjectivesButeMgr.cpp" />
+    <ClCompile Include="..\Shared\PickupButeMgr.cpp" />
+    <ClCompile Include="PropTypeMgr.cpp" />
+    <ClCompile Include="ServerAssetMgr.cpp" />
+    <ClCompile Include="ServerSoundMgr.cpp" />
+    <ClCompile Include="..\Shared\SoundButeMgr.cpp" />
+    <ClCompile Include="..\Shared\SoundMgr.cpp" />
+    <ClCompile Include="SpawnButeMgr.cpp" />
+    <ClCompile Include="..\Shared\SurfaceMgr.cpp" />
+    <ClCompile Include="..\Shared\WeaponMgr.cpp" />
+    <ClCompile Include="..\Shared\AssertMgr.cpp" />
+    <ClCompile Include="Attachments.cpp" />
+    <ClCompile Include="..\Shared\Callback0.cpp" />
+    <ClCompile Include="..\Shared\CharacterAnimation.cpp" />
+    <ClCompile Include="..\Shared\CharacterAnimationDefs.cpp" />
+    <ClCompile Include="CharacterHitBox.cpp" />
+    <ClCompile Include="CharacterMgr.cpp" />
+    <ClCompile Include="..\Shared\CharacterMovement.cpp" />
+    <ClCompile Include="ClientDeathSFX.cpp" />
+    <ClCompile Include="ClientLightFX.cpp" />
+    <ClCompile Include="ClientSFX.cpp" />
+    <ClCompile Include="ClientWeaponSFX.cpp" />
+    <ClCompile Include="CommandMgr.cpp" />
+    <ClCompile Include="..\Shared\CommonUtilities.cpp" />
+    <ClCompile Include="Controller.cpp" />
+    <ClCompile Include="..\Shared\DamageTypes.cpp" />
+    <ClCompile Include="DebrisFuncs.cpp" />
+    <ClCompile Include="..\Shared\DebrisTypes.cpp" />
+    <ClCompile Include="..\Shared\DebugLine.cpp" />
+    <ClCompile Include="DebugLineSystem.cpp" />
+    <ClCompile Include="DialogueWindow.cpp" />
+    <ClCompile Include="DisplayTimer.cpp" />
+    <ClCompile Include="Editable.cpp" />
+    <ClCompile Include="..\Shared\FXStructs.cpp" />
+    <ClCompile Include="GameServerShell.cpp" />
+    <ClCompile Include="..\Shared\GameType.cpp" />
+    <ClCompile Include="HHWeaponModel.cpp" />
+    <ClCompile Include="Key.cpp" />
+    <ClCompile Include="KeyData.cpp" />
+    <ClCompile Include="KeyFramer.cpp" />
+    <ClCompile Include="keyframer_light.cpp" />
+    <ClCompile Include="..\Shared\LTString.cpp" />
+    <ClCompile Include="..\Shared\MemoryUtils.cpp" />
+    <ClCompile Include="MultiplayerMgr.cpp" />
+    <ClCompile Include="NodeLine.cpp" />
+    <ClCompile Include="object_list.cpp" />
+    <ClCompile Include="ObjectiveMgr.cpp" />
+    <ClCompile Include="ObjectRemover.cpp" />
+    <ClCompile Include="ParticleSystem.cpp" />
+    <ClCompile Include="PolyGrid.cpp" />
+    <ClCompile Include="PredDisk.cpp" />
+    <ClCompile Include="PredNet.cpp" />
+    <ClCompile Include="Projectile.cpp" />
+    <ClCompile Include="ProjectileTypes.cpp" />
+    <ClCompile Include="RandomSpawner.cpp" />
+    <ClCompile Include="..\Shared\ratetracker.cpp" />
+    <ClCompile Include="Scanner.cpp" />
+    <ClCompile Include="SearchLight.cpp" />
+    <ClCompile Include="ServerMark.cpp" />
+    <ClCompile Include="ServerUtilities.cpp" />
+    <ClCompile Include="SFXFuncs.cpp" />
+    <ClCompile Include="..\Shared\SharedFXStructs.cpp" />
+    <ClCompile Include="Sparam.cpp" />
+    <ClCompile Include="Sprinkles.cpp" />
+    <ClCompile Include="..\Shared\Stdafx.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <ClCompile Include="..\Shared\SurfaceFunctions.cpp" />
+    <ClCompile Include="..\Shared\TemplateList.cpp" />
+    <ClCompile Include="turret.cpp" />
+    <ClCompile Include="TurretSense.cpp" />
+    <ClCompile Include="Weapon.cpp" />
+    <ClCompile Include="Weapons.cpp" />
+    <ClCompile Include="WorldModelDebris.cpp" />
+    <ClCompile Include="Alarm.cpp" />
+    <ClCompile Include="AmmoBox.cpp" />
+    <ClCompile Include="Beetle.cpp" />
+    <ClCompile Include="BodyProp.cpp" />
+    <ClCompile Include="Breakable.cpp" />
+    <ClCompile Include="Camera.cpp" />
+    <ClCompile Include="Character.cpp" />
+    <ClCompile Include="CinematicTrigger.cpp" />
+    <ClCompile Include="Civilian.cpp" />
+    <ClCompile Include="DebrisSpawner.cpp" />
+    <ClCompile Include="Destructible.cpp" />
+    <ClCompile Include="DestructibleModel.cpp" />
+    <ClCompile Include="Door.cpp" />
+    <ClCompile Include="Dripper.cpp" />
+    <ClCompile Include="Egg.cpp" />
+    <ClCompile Include="EvacZone.cpp" />
+    <ClCompile Include="EventCounter.cpp" />
+    <ClCompile Include="ExitTrigger.cpp" />
+    <ClCompile Include="Explosion.cpp" />
+    <ClCompile Include="Fire.cpp" />
+    <ClCompile Include="FogVolume.cpp" />
+    <ClCompile Include="GameBase.cpp" />
+    <ClCompile Include="GameStartPoint.cpp" />
+    <ClCompile Include="Group.cpp" />
+    <ClCompile Include="HackableLock.cpp" />
+    <ClCompile Include="HackableWorldmodel.cpp" />
+    <ClCompile Include="HingedDoor.cpp" />
+    <ClCompile Include="LaserTrigger.cpp" />
+    <ClCompile Include="LightGroup.cpp" />
+    <ClCompile Include="Lightning.cpp" />
+    <ClCompile Include="MDTrackerItem.cpp" />
+    <ClCompile Include="MultiSpawner.cpp" />
+    <ClCompile Include="MusicVolume.cpp" />
+    <ClCompile Include="ObjectiveEvent.cpp" />
+    <ClCompile Include="PickupObject.cpp" />
+    <ClCompile Include="Plant.cpp" />
+    <ClCompile Include="PlayerObj.cpp" />
+    <ClCompile Include="PredShoulderCannon.cpp" />
+    <ClCompile Include="Prop.cpp" />
+    <ClCompile Include="PropType.cpp" />
+    <ClCompile Include="RotatingDoor.cpp" />
+    <ClCompile Include="RotatingWorldModel.cpp" />
+    <ClCompile Include="ScaleSprite.cpp" />
+    <ClCompile Include="ScreenShake.cpp" />
+    <ClCompile Include="SoundFX.cpp" />
+    <ClCompile Include="SoundFXObj.cpp" />
+    <ClCompile Include="Spawner.cpp" />
+    <ClCompile Include="SpectatorPoint.cpp" />
+    <ClCompile Include="SpriteControl.cpp" />
+    <ClCompile Include="StarlightView.cpp" />
+    <ClCompile Include="Steam.cpp" />
+    <ClCompile Include="StoryObject.cpp" />
+    <ClCompile Include="Striker.cpp" />
+    <ClCompile Include="Switch.cpp" />
+    <ClCompile Include="TeleportPoint.cpp" />
+    <ClCompile Include="TorchableLock.cpp" />
+    <ClCompile Include="TorchableLockCounter.cpp" />
+    <ClCompile Include="TrailNode.cpp" />
+    <ClCompile Include="TranslucentWorldModel.cpp" />
+    <ClCompile Include="Trigger.cpp" />
+    <ClCompile Include="TriggerSound.cpp" />
+    <ClCompile Include="VolumeBrush.cpp" />
+    <ClCompile Include="VolumeBrushTypes.cpp" />
+    <ClCompile Include="WorldProperties.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Shared\PlugFactoryTemplate.h" />
+    <ClInclude Include="AI.h" />
+    <ClInclude Include="AIAlien.h" />
+    <ClInclude Include="AIButeMgr.h" />
+    <ClInclude Include="AICorporate.h" />
+    <ClInclude Include="AIDunyaExosuit.h" />
+    <ClInclude Include="AIEisenberg.h" />
+    <ClInclude Include="AIExosuit.h" />
+    <ClInclude Include="AIMarine.h" />
+    <ClInclude Include="AIMiser.h" />
+    <ClInclude Include="AIPath.h" />
+    <ClInclude Include="AIPlayer.h" />
+    <ClInclude Include="AIPredator.h" />
+    <ClInclude Include="AIQueen.h" />
+    <ClInclude Include="AIRykov.h" />
+    <ClInclude Include="AIRykovExosuit.h" />
+    <ClInclude Include="AIScriptCommands.h" />
+    <ClInclude Include="AISense.h" />
+    <ClInclude Include="AISenseHear.h" />
+    <ClInclude Include="AISenseMgr.h" />
+    <ClInclude Include="AISenseSee.h" />
+    <ClInclude Include="AIState.h" />
+    <ClInclude Include="AITarget.h" />
+    <ClInclude Include="AIUtils.h" />
+    <ClInclude Include="AIVolume.h" />
+    <ClInclude Include="AStar.h" />
+    <ClInclude Include="AvoidancePath.h" />
+    <ClInclude Include="BidMgr.h" />
+    <ClInclude Include="Goal.h" />
+    <ClInclude Include="ObstacleMgr.h" />
+    <ClInclude Include="ParseUtils.h" />
+    <ClInclude Include="Sense.h" />
+    <ClInclude Include="SimpleAI.h" />
+    <ClInclude Include="SimpleAIAlien.h" />
+    <ClInclude Include="SimpleNode.h" />
+    <ClInclude Include="SimpleNodeMgr.h" />
+    <ClInclude Include="AIStrategy.h" />
+    <ClInclude Include="AIStrategyAdvance.h" />
+    <ClInclude Include="AIStrategyApproachTarget.h" />
+    <ClInclude Include="AIStrategyEngageTarget.h" />
+    <ClInclude Include="AIStrategyFollowPath.h" />
+    <ClInclude Include="AIStrategyMove.h" />
+    <ClInclude Include="AIStrategyRetreat.h" />
+    <ClInclude Include="AIStrategySetFacing.h" />
+    <ClInclude Include="AIAlarm.h" />
+    <ClInclude Include="AIAlienAttack.h" />
+    <ClInclude Include="AIAttack.h" />
+    <ClInclude Include="AIChase.h" />
+    <ClInclude Include="AICombatGoal.h" />
+    <ClInclude Include="AICower.h" />
+    <ClInclude Include="AIIdle.h" />
+    <ClInclude Include="AIInvestigate.h" />
+    <ClInclude Include="AILurk.h" />
+    <ClInclude Include="AINodeCheck.h" />
+    <ClInclude Include="AIPatrol.h" />
+    <ClInclude Include="AIRetreat.h" />
+    <ClInclude Include="AIScript.h" />
+    <ClInclude Include="AISnipe.h" />
+    <ClInclude Include="AINode.h" />
+    <ClInclude Include="AINodeAlarm.h" />
+    <ClInclude Include="AINodeCover.h" />
+    <ClInclude Include="AINodeGroup.h" />
+    <ClInclude Include="AINodeLadder.h" />
+    <ClInclude Include="AINodeMgr.h" />
+    <ClInclude Include="AINodePatrol.h" />
+    <ClInclude Include="AINodeSnipe.h" />
+    <ClInclude Include="AINodeVolume.h" />
+    <ClInclude Include="AINodeWallWalk.h" />
+    <ClInclude Include="AIAction.h" />
+    <ClInclude Include="AIActionMisc.h" />
+    <ClInclude Include="AIActionMoveTo.h" />
+    <ClInclude Include="AIAnimButeMgr.h" />
+    <ClInclude Include="..\Shared\AnimationButeMgr.h" />
+    <ClInclude Include="AttachButeMgr.h" />
+    <ClInclude Include="..\Shared\CharacterButeMgr.h" />
+    <ClInclude Include="..\Shared\DebrisMgr.h" />
+    <ClInclude Include="..\Shared\FXButeMgr.h" />
+    <ClInclude Include="..\Shared\GameButeMgr.h" />
+    <ClInclude Include="..\Shared\GlobalMgr.h" />
+    <ClInclude Include="..\Shared\MissionMgr.h" />
+    <ClInclude Include="..\Shared\ModelButeMgr.h" />
+    <ClInclude Include="MusicMgr.h" />
+    <ClInclude Include="..\Shared\ObjectivesButeMgr.h" />
+    <ClInclude Include="..\Shared\PickupButeMgr.h" />
+    <ClInclude Include="PropTypeMgr.h" />
+    <ClInclude Include="ServerAssetMgr.h" />
+    <ClInclude Include="ServerSoundMgr.h" />
+    <ClInclude Include="..\Shared\SoundButeMgr.h" />
+    <ClInclude Include="..\Shared\SoundMgr.h" />
+    <ClInclude Include="SpawnButeMgr.h" />
+    <ClInclude Include="..\Shared\SurfaceMgr.h" />
+    <ClInclude Include="..\Shared\WeaponMgr.h" />
+    <ClInclude Include="AIPathMgr.h" />
+    <ClInclude Include="AIVolumeMgr.h" />
+    <ClInclude Include="..\Shared\AssertMgr.h" />
+    <ClInclude Include="Attachments.h" />
+    <ClInclude Include="..\Shared\Callback.h" />
+    <ClInclude Include="..\Shared\callback0.h" />
+    <ClInclude Include="..\Shared\callback1.h" />
+    <ClInclude Include="..\Shared\callback2.h" />
+    <ClInclude Include="..\Shared\callback3.h" />
+    <ClInclude Include="..\Shared\callback4.h" />
+    <ClInclude Include="..\Shared\callback5.h" />
+    <ClInclude Include="..\Shared\CharacterAlignment.h" />
+    <ClInclude Include="..\Shared\CharacterAnimation.h" />
+    <ClInclude Include="..\Shared\CharacterAnimationDefs.h" />
+    <ClInclude Include="..\Shared\CharacterFuncs.h" />
+    <ClInclude Include="CharacterHitBox.h" />
+    <ClInclude Include="CharacterMgr.h" />
+    <ClInclude Include="..\Shared\CharacterMovement.h" />
+    <ClInclude Include="..\Shared\CharacterMovementDefs.h" />
+    <ClInclude Include="..\Shared\CheatDefs.h" />
+    <ClInclude Include="ClientDeathSFX.h" />
+    <ClInclude Include="ClientFX.h" />
+    <ClInclude Include="ClientLightFX.h" />
+    <ClInclude Include="..\Shared\ClientServerShared.h" />
+    <ClInclude Include="ClientSFX.h" />
+    <ClInclude Include="ClientWeaponSFX.h" />
+    <ClInclude Include="..\Shared\CommandIDs.h" />
+    <ClInclude Include="CommandMgr.h" />
+    <ClInclude Include="..\Shared\CommonUtilities.h" />
+    <ClInclude Include="..\Shared\ContainerCodes.h" />
+    <ClInclude Include="Controller.h" />
+    <ClInclude Include="..\Shared\CSDefs.h" />
+    <ClInclude Include="CVarTrack.h" />
+    <ClInclude Include="..\Shared\DamageTypes.h" />
+    <ClInclude Include="DebrisFuncs.h" />
+    <ClInclude Include="..\Shared\DebrisTypes.h" />
+    <ClInclude Include="..\Shared\DebugLine.h" />
+    <ClInclude Include="DebugLineSystem.h" />
+    <ClInclude Include="DialogueWindow.h" />
+    <ClInclude Include="DisplayTimer.h" />
+    <ClInclude Include="DynArray.h" />
+    <ClInclude Include="Editable.h" />
+    <ClInclude Include="fsm.h" />
+    <ClInclude Include="..\Shared\FXStructs.h" />
+    <ClInclude Include="GameServerShell.h" />
+    <ClInclude Include="..\Shared\GameType.h" />
+    <ClInclude Include="..\Shared\GibTypes.h" />
+    <ClInclude Include="..\Shared\Globals.h" />
+    <ClInclude Include="HHWeaponModel.h" />
+    <ClInclude Include="..\Shared\HierarchicalButeMgr.h" />
+    <ClInclude Include="Key.h" />
+    <ClInclude Include="KeyData.h" />
+    <ClInclude Include="KeyFramer.h" />
+    <ClInclude Include="keyframer_light.h" />
+    <ClInclude Include="..\Shared\LTString.h" />
+    <ClInclude Include="..\Shared\MemoryUtils.h" />
+    <ClInclude Include="..\Shared\ModelDefs.h" />
+    <ClInclude Include="..\Shared\MsgIDs.h" />
+    <ClInclude Include="MultiplayerMgr.h" />
+    <ClInclude Include="..\Shared\MultiplayerMgrDefs.h" />
+    <ClInclude Include="NodeLine.h" />
+    <ClInclude Include="ObjectiveMgr.h" />
+    <ClInclude Include="ObjectMsgs.h" />
+    <ClInclude Include="ObjectRemover.h" />
+    <ClInclude Include="ParticleSystem.h" />
+    <ClInclude Include="PolyGrid.h" />
+    <ClInclude Include="PredDisk.h" />
+    <ClInclude Include="PredNet.h" />
+    <ClInclude Include="Projectile.h" />
+    <ClInclude Include="ProjectileTypes.h" />
+    <ClInclude Include="Range.h" />
+    <ClInclude Include="..\Shared\ratetracker.h" />
+    <ClInclude Include="..\Shared\RCMessage.h" />
+    <ClInclude Include="Scanner.h" />
+    <ClInclude Include="..\Shared\SCDefs.h" />
+    <ClInclude Include="SearchLight.h" />
+    <ClInclude Include="ServerMark.h" />
+    <ClInclude Include="ServerUtilities.h" />
+    <ClInclude Include="SFXFuncs.h" />
+    <ClInclude Include="..\Shared\SFXMsgIds.h" />
+    <ClInclude Include="..\Shared\SharedBaseFXStructs.h" />
+    <ClInclude Include="..\Shared\SharedFXStructs.h" />
+    <ClInclude Include="..\Shared\SharedMovement.h" />
+    <ClInclude Include="..\Shared\SoundTypes.h" />
+    <ClInclude Include="Sparam.h" />
+    <ClInclude Include="Sprinkles.h" />
+    <ClInclude Include="..\Shared\Stdafx.h" />
+    <ClInclude Include="..\Shared\SurfaceFunctions.h" />
+    <ClInclude Include="..\Shared\TemplateList.h" />
+    <ClInclude Include="Turret.h" />
+    <ClInclude Include="TurretSense.h" />
+    <ClInclude Include="Weapon.h" />
+    <ClInclude Include="..\Shared\WeaponFXTypes.h" />
+    <ClInclude Include="Weapons.h" />
+    <ClInclude Include="WorldModelDebris.h" />
+    <ClInclude Include="Alarm.h" />
+    <ClInclude Include="AmmoBox.h" />
+    <ClInclude Include="Beetle.h" />
+    <ClInclude Include="BodyProp.h" />
+    <ClInclude Include="Breakable.h" />
+    <ClInclude Include="Camera.h" />
+    <ClInclude Include="Character.h" />
+    <ClInclude Include="CinematicTrigger.h" />
+    <ClInclude Include="Civilian.h" />
+    <ClInclude Include="DebrisSpawner.h" />
+    <ClInclude Include="Destructible.h" />
+    <ClInclude Include="DestructibleModel.h" />
+    <ClInclude Include="Door.h" />
+    <ClInclude Include="Dripper.h" />
+    <ClInclude Include="Egg.h" />
+    <ClInclude Include="EvacZone.h" />
+    <ClInclude Include="EventCounter.h" />
+    <ClInclude Include="ExitTrigger.h" />
+    <ClInclude Include="Explosion.h" />
+    <ClInclude Include="Fire.h" />
+    <ClInclude Include="FogVolume.h" />
+    <ClInclude Include="GameBase.h" />
+    <ClInclude Include="GameStartPoint.h" />
+    <ClInclude Include="Group.h" />
+    <ClInclude Include="HackableLock.h" />
+    <ClInclude Include="HackableWorldmodel.h" />
+    <ClInclude Include="HingedDoor.h" />
+    <ClInclude Include="LaserTrigger.h" />
+    <ClInclude Include="LightGroup.h" />
+    <ClInclude Include="Lightning.h" />
+    <ClInclude Include="LightObject.h" />
+    <ClInclude Include="MDTrackerItem.h" />
+    <ClInclude Include="MultiSpawner.h" />
+    <ClInclude Include="MusicVolume.h" />
+    <ClInclude Include="ObjectiveEvent.h" />
+    <ClInclude Include="PickupObject.h" />
+    <ClInclude Include="Plant.h" />
+    <ClInclude Include="PlayerObj.h" />
+    <ClInclude Include="PredShoulderCannon.h" />
+    <ClInclude Include="Prop.h" />
+    <ClInclude Include="PropType.h" />
+    <ClInclude Include="RandomSpawner.h" />
+    <ClInclude Include="RotatingDoor.h" />
+    <ClInclude Include="RotatingWorldModel.h" />
+    <ClInclude Include="ScaleSprite.h" />
+    <ClInclude Include="ScreenShake.h" />
+    <ClInclude Include="SoundFX.h" />
+    <ClInclude Include="SoundFXObj.h" />
+    <ClInclude Include="Spawner.h" />
+    <ClInclude Include="SpectatorPoint.h" />
+    <ClInclude Include="SpriteControl.h" />
+    <ClInclude Include="StarlightView.h" />
+    <ClInclude Include="Steam.h" />
+    <ClInclude Include="StoryObject.h" />
+    <ClInclude Include="Striker.h" />
+    <ClInclude Include="Switch.h" />
+    <ClInclude Include="TeleportPoint.h" />
+    <ClInclude Include="..\Shared\Timer.h" />
+    <ClInclude Include="TorchableLock.h" />
+    <ClInclude Include="TorchableLockCounter.h" />
+    <ClInclude Include="TrailNode.h" />
+    <ClInclude Include="TranslucentWorldModel.h" />
+    <ClInclude Include="Trigger.h" />
+    <ClInclude Include="TriggerSound.h" />
+    <ClInclude Include="VolumeBrush.h" />
+    <ClInclude Include="VolumeBrushTypes.h" />
+    <ClInclude Include="WorldProperties.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="$(LT2_DIR)\lithshared\libs\Release\MFCStub.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Demo Debug|Win32'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="$(LT2_DIR)\lithshared\libs\Release\StdLith.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Demo Debug|Win32'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="$(LT2_DIR)\lithshared\libs\Release\LithTrackMgr.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Demo Debug|Win32'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="$(LT2_DIR)\lithshared\libs\Release\GameSpyMgr.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Demo Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Demo Debug|Win32'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="$(LT2_DIR)\lithshared\libs\Release\WONAPI.lib" />
+    <Library Include="$(LT2_DIR)\lithshared\libs\Release\GameSpyMgrDemo.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Demo Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="$(LT2_DIR)\lithshared\libs\Debug\StdLith.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Demo Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="$(LT2_DIR)\lithshared\libs\Debug\MFCStub.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Demo Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="$(LT2_DIR)\lithshared\libs\Debug\LithTrackMgr.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Demo Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="$(LT2_DIR)\lithshared\libs\Debug\GameSpyMgr.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Demo Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Demo Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">true</ExcludedFromBuild>
+    </Library>
+    <Library Include="$(LT2_DIR)\lithshared\libs\Debug\GameSpyMgrDemo.lib">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Demo Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Final|Win32'">true</ExcludedFromBuild>
+    </Library>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets" />
+</Project>

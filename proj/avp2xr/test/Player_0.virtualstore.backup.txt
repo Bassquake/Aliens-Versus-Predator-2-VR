@@ -1,0 +1,162 @@
+[Basic]
+
+InvertMouse = 0
+MouseLook = 1
+InputRate = 12
+Sensitivity = 7
+NormalTurn = 15
+FastTurn = 23
+LookUp = 25
+AutoCenter = 0
+UseJoystick = 0
+
+[Shared]
+
+Fire = " @##3@ "
+AltFire = " @##4@ "
+Forward = "##17@ @ "
+Backward = "##31@ @ "
+Left = "##203@ @ "
+Right = "##205@ @ "
+StrafeLeft = "##30@ @ "
+StrafeRight = "##32@ @ "
+Strafe = "##37@ @ "
+Jump = "##57@ @ "
+NextVision = "##47@ @ "
+LookUp = "##199@ @ "
+LookDown = "##207@ @ "
+CenterView = "##211@ @ "
+Message = "##28@ @ "
+ScoreDisplay = "##15@ @ "
+Run = "##58@ @ "
+RunLock = "##50@ @ "
+TeamMessage = "##43@ @ "
+Taunt = "##14@ @ "
+MouseAim = "##210@ @ "
+Crosshair = "##52@ @ "
+
+[Alien]
+
+Duck = "##29@ @ "
+CrouchToggle = "##53@ @ "
+WallWalk = "##42@ @ "
+WallWalkToggle = "##34@ @ "
+PounceJump = "##18@ @ "
+LevelStatus = 0x00000000
+
+[Marine]
+
+Reload = "##19@ @ "
+Duck = "##42@ @ "
+CrouchToggle = "##53@ @ "
+Activate = "##18@ @ "
+NextWeapon = "##16@#D@ "
+PrevWeapon = "##44@#U@ "
+Item0 = "##34@ @ "
+Item1 = "##33@ @ "
+Item2 = "##35@ @ "
+TorchSelect = "##20@ @ "
+Weapon0 = "##2@ @ "
+Weapon1 = "##3@ @ "
+Weapon2 = "##4@ @ "
+Weapon3 = "##5@ @ "
+Weapon4 = "##6@ @ "
+Weapon5 = "##7@ @ "
+Weapon6 = "##8@ @ "
+Weapon7 = "##9@ @ "
+Weapon8 = "##10@ @ "
+Weapon9 = "##11@ @ "
+LastWeapon = "##45@ @ "
+Crosshair = "##49@ @ "
+LevelStatus = 0x00000000
+
+[Predator]
+
+Reload = "##19@ @ "
+Duck = "##42@ @ "
+CrouchToggle = "##53@ @ "
+Activate = "##18@ @ "
+NextWeapon = "##16@ @ "
+PrevWeapon = "##44@ @ "
+ZoomIn = "##201@#U@ "
+ZoomOut = "##209@#D@ "
+Item2 = "##35@ @ "
+Item8 = "##46@ @ "
+Item9 = "##33@ @ "
+Weapon0 = "##2@ @ "
+Weapon1 = "##3@ @ "
+Weapon2 = "##4@ @ "
+Weapon3 = "##5@ @ "
+Weapon4 = "##6@ @ "
+Weapon5 = "##7@ @ "
+Weapon6 = "##8@ @ "
+Weapon7 = "##9@ @ "
+EnergySift = "##20@ @ "
+MediComp = "##34@ @ "
+LastWeapon = "##45@ @ "
+Crosshair = "##49@ @ "
+PrevVision = "##48@ @ "
+LevelStatus = 0x00000000
+
+[AxisPitch]
+
+FixedPosition = 1
+Axis = "None"
+InvertAxis = 0
+DeadZone = 2
+Analog = 0
+Sensitivity = 10
+CenterOffset = 0
+
+[AxisYaw]
+
+Axis = "None"
+InvertAxis = 0
+DeadZone = 2
+Analog = 0
+Sensitivity = 10
+CenterOffset = 0
+
+[AxisLeftRight]
+
+Axis = "None"
+InvertAxis = 0
+DeadZone = 2
+Analog = 0
+Sensitivity = 10
+CenterOffset = 0
+
+[AxisForwardBackward]
+
+Axis = "None"
+InvertAxis = 0
+DeadZone = 2
+Analog = 0
+Sensitivity = 10
+CenterOffset = 0
+
+[Game]
+
+PickupDuration = 5.0
+AutoswitchWeapons = 1
+RunLock = 1
+HeadBob = 1
+HeadCanting = 1
+WeaponSway = 1
+Objectives = 1
+Hints = 1
+Subtitles = 1
+OrientOverlay = 1
+
+[Multiplayer]
+
+PlayerName = "Player_0"
+Race = 1
+Char0 = 153
+Char1 = 159
+Char2 = 147
+Char3 = 162
+MessageDisplay = 0.200000003
+MessageTime = 1.0
+IgnoreTaunts = 0
+Connection = 0

@@ -1,0 +1,1522 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="LithShared">
+      <UniqueIdentifier>{6A1C3E52-2B7D-4F1E-9C1A-B7E3D1A0F001}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source">
+      <UniqueIdentifier>{7C8BF3D5-1930-5E2E-9CF6-4873C2447AB6}</UniqueIdentifier>
+      <Extensions>cpp;c</Extensions>
+    </Filter>
+    <Filter Include="Source\AI Source Files">
+      <UniqueIdentifier>{0CB34EED-9800-5C8A-A330-87DD0AF2004C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\AI Source Files\AIStrategy Source Files">
+      <UniqueIdentifier>{5D4AD62B-164F-5A46-9200-D9A8C0829C26}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\AI Source Files\AI Goal Source Files">
+      <UniqueIdentifier>{B8F870F8-21EF-52EE-A8A7-5F57D6296BF5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\AI Source Files\AINode Source Files">
+      <UniqueIdentifier>{548DCD8A-AAA0-5F59-95F0-304C1B4652F5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\AI Source Files\AI Action Source">
+      <UniqueIdentifier>{A946C75C-B3F9-53CC-8866-AAE0943EEC0F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\ButeMgr Source">
+      <UniqueIdentifier>{BB478059-1F6A-59DA-BCD0-726300A97974}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Misc Source">
+      <UniqueIdentifier>{D7F9FB6C-D6CF-5413-A66B-22906A992A92}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source\Game Object Source">
+      <UniqueIdentifier>{CDFBF07D-09A0-58F2-AE4B-CB37126B1416}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{CE3A356B-6EE9-539E-8E70-596CBC019D03}</UniqueIdentifier>
+      <Extensions>h;hpp</Extensions>
+    </Filter>
+    <Filter Include="Headers\AI Header Files">
+      <UniqueIdentifier>{A946F2FE-DA0F-5F00-9052-202F2A3155E0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\AI Header Files\AIStrategy Header Files">
+      <UniqueIdentifier>{5C09959F-B114-5390-B20B-86EBA51FA558}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\AI Header Files\AI Goal Header Files">
+      <UniqueIdentifier>{2DF6831C-85B3-5B26-86DB-27FDCECF7A52}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\AI Header Files\AINode Header Files">
+      <UniqueIdentifier>{46CCA79B-2220-5E2B-8977-37DCB02EB91C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\AI Header Files\AI Action Headers">
+      <UniqueIdentifier>{E7C674B3-D5C3-5508-B967-1BBE39A220E0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\ButeMgr Headers">
+      <UniqueIdentifier>{7FDA170D-0E1E-5044-8964-491ED68F82A6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Misc Headers">
+      <UniqueIdentifier>{C9D55F5E-DF59-53B6-8EBE-4248391B3C3D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Headers\Game Object Headers">
+      <UniqueIdentifier>{E0AEA77E-FF81-544E-834B-86F9D7EAC604}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libs_Release">
+      <UniqueIdentifier>{429ED73B-0E88-5AB3-8DAE-060A5AFCB536}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Libs_Debug">
+      <UniqueIdentifier>{971663F4-38F6-5C0D-8FFB-AD2D98371A8A}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="$(LT2_DIR)\lithshared\butemgr\butemgr.cpp">
+      <Filter>LithShared</Filter>
+    </ClCompile>
+    <ClCompile Include="$(LT2_DIR)\lithshared\vc6compat\vc6compat.cpp">
+      <Filter>LithShared</Filter>
+    </ClCompile>
+    <ClCompile Include="AI.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIAlien.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIButeMgr.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AICorporate.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIDunyaExosuit.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIEisenberg.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIExosuit.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMarine.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIMiser.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIPath.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIPathMgr.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIPlayer.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIPredator.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIQueen.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIRykov.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIRykovExosuit.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIScriptCommands.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AISense.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AISenseHear.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AISenseMgr.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AISenseSee.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIState.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AITarget.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIUtils.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIVolume.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIVolumeMgr.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AvoidancePath.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BidMgr.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Goal.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ObstacleMgr.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ParseUtils.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Sense.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SimpleAI.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SimpleAIAlien.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SimpleNode.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SimpleNodeMgr.cpp">
+      <Filter>Source\AI Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIStrategy.cpp">
+      <Filter>Source\AI Source Files\AIStrategy Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIStrategyAdvance.cpp">
+      <Filter>Source\AI Source Files\AIStrategy Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIStrategyApproachTarget.cpp">
+      <Filter>Source\AI Source Files\AIStrategy Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIStrategyEngageTarget.cpp">
+      <Filter>Source\AI Source Files\AIStrategy Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIStrategyFollowPath.cpp">
+      <Filter>Source\AI Source Files\AIStrategy Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIStrategyMove.cpp">
+      <Filter>Source\AI Source Files\AIStrategy Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIStrategyRetreat.cpp">
+      <Filter>Source\AI Source Files\AIStrategy Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIStrategySetFacing.cpp">
+      <Filter>Source\AI Source Files\AIStrategy Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIAlarm.cpp">
+      <Filter>Source\AI Source Files\AI Goal Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIAlienAttack.cpp">
+      <Filter>Source\AI Source Files\AI Goal Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIAttack.cpp">
+      <Filter>Source\AI Source Files\AI Goal Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIChase.cpp">
+      <Filter>Source\AI Source Files\AI Goal Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AICombatGoal.cpp">
+      <Filter>Source\AI Source Files\AI Goal Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AICower.cpp">
+      <Filter>Source\AI Source Files\AI Goal Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIInvestigate.cpp">
+      <Filter>Source\AI Source Files\AI Goal Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AILurk.cpp">
+      <Filter>Source\AI Source Files\AI Goal Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AINodeCheck.cpp">
+      <Filter>Source\AI Source Files\AI Goal Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIPatrol.cpp">
+      <Filter>Source\AI Source Files\AI Goal Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIRetreat.cpp">
+      <Filter>Source\AI Source Files\AI Goal Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIScript.cpp">
+      <Filter>Source\AI Source Files\AI Goal Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AISnipe.cpp">
+      <Filter>Source\AI Source Files\AI Goal Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AINode.cpp">
+      <Filter>Source\AI Source Files\AINode Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AINodeAlarm.cpp">
+      <Filter>Source\AI Source Files\AINode Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AINodeCover.cpp">
+      <Filter>Source\AI Source Files\AINode Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AINodeLadder.cpp">
+      <Filter>Source\AI Source Files\AINode Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AINodeMgr.cpp">
+      <Filter>Source\AI Source Files\AINode Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AINodePatrol.cpp">
+      <Filter>Source\AI Source Files\AINode Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AINodeSnipe.cpp">
+      <Filter>Source\AI Source Files\AINode Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AINodeVolume.cpp">
+      <Filter>Source\AI Source Files\AINode Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AINodeWallWalk.cpp">
+      <Filter>Source\AI Source Files\AINode Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="AIActionMisc.cpp">
+      <Filter>Source\AI Source Files\AI Action Source</Filter>
+    </ClCompile>
+    <ClCompile Include="AIActionMoveTo.cpp">
+      <Filter>Source\AI Source Files\AI Action Source</Filter>
+    </ClCompile>
+    <ClCompile Include="AIAnimButeMgr.cpp">
+      <Filter>Source\ButeMgr Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\AnimationButeMgr.cpp">
+      <Filter>Source\ButeMgr Source</Filter>
+    </ClCompile>
+    <ClCompile Include="AttachButeMgr.cpp">
+      <Filter>Source\ButeMgr Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\CharacterButeMgr.cpp">
+      <Filter>Source\ButeMgr Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\DebrisMgr.cpp">
+      <Filter>Source\ButeMgr Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\FXButeMgr.cpp">
+      <Filter>Source\ButeMgr Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\GameButeMgr.cpp">
+      <Filter>Source\ButeMgr Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\GlobalMgr.cpp">
+      <Filter>Source\ButeMgr Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\MissionMgr.cpp">
+      <Filter>Source\ButeMgr Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\ModelButeMgr.cpp">
+      <Filter>Source\ButeMgr Source</Filter>
+    </ClCompile>
+    <ClCompile Include="MusicMgr.cpp">
+      <Filter>Source\ButeMgr Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\ObjectivesButeMgr.cpp">
+      <Filter>Source\ButeMgr Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\PickupButeMgr.cpp">
+      <Filter>Source\ButeMgr Source</Filter>
+    </ClCompile>
+    <ClCompile Include="PropTypeMgr.cpp">
+      <Filter>Source\ButeMgr Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ServerAssetMgr.cpp">
+      <Filter>Source\ButeMgr Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ServerSoundMgr.cpp">
+      <Filter>Source\ButeMgr Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\SoundButeMgr.cpp">
+      <Filter>Source\ButeMgr Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\SoundMgr.cpp">
+      <Filter>Source\ButeMgr Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SpawnButeMgr.cpp">
+      <Filter>Source\ButeMgr Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\SurfaceMgr.cpp">
+      <Filter>Source\ButeMgr Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\WeaponMgr.cpp">
+      <Filter>Source\ButeMgr Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\AssertMgr.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Attachments.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\Callback0.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\CharacterAnimation.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\CharacterAnimationDefs.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="CharacterHitBox.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="CharacterMgr.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\CharacterMovement.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ClientDeathSFX.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ClientLightFX.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ClientSFX.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ClientWeaponSFX.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="CommandMgr.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\CommonUtilities.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Controller.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\DamageTypes.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DebrisFuncs.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\DebrisTypes.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\DebugLine.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DebugLineSystem.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DialogueWindow.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DisplayTimer.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Editable.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\FXStructs.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="GameServerShell.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\GameType.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="HHWeaponModel.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Key.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="KeyData.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="KeyFramer.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="keyframer_light.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\LTString.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\MemoryUtils.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="MultiplayerMgr.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="NodeLine.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="object_list.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectiveMgr.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectRemover.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleSystem.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="PolyGrid.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="PredDisk.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="PredNet.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Projectile.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ProjectileTypes.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="RandomSpawner.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\ratetracker.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Scanner.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SearchLight.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ServerMark.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ServerUtilities.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SFXFuncs.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\SharedFXStructs.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Sparam.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Sprinkles.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\Stdafx.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\SurfaceFunctions.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Shared\TemplateList.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="turret.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TurretSense.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Weapon.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Weapons.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="WorldModelDebris.cpp">
+      <Filter>Source\Misc Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Alarm.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="AmmoBox.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Beetle.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="BodyProp.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Breakable.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Character.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="CinematicTrigger.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Civilian.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DebrisSpawner.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Destructible.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="DestructibleModel.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Door.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Dripper.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Egg.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="EvacZone.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="EventCounter.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ExitTrigger.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Explosion.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Fire.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="FogVolume.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="GameBase.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="GameStartPoint.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Group.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="HackableLock.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="HackableWorldmodel.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="HingedDoor.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="LaserTrigger.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="LightGroup.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Lightning.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="MDTrackerItem.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="MultiSpawner.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="MusicVolume.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ObjectiveEvent.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="PickupObject.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Plant.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerObj.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="PredShoulderCannon.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Prop.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="PropType.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="RotatingDoor.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="RotatingWorldModel.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ScaleSprite.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="ScreenShake.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundFX.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SoundFXObj.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Spawner.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SpectatorPoint.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="SpriteControl.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="StarlightView.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Steam.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="StoryObject.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Striker.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Switch.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TeleportPoint.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TorchableLock.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TorchableLockCounter.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TrailNode.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TranslucentWorldModel.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Trigger.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="TriggerSound.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="VolumeBrush.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="VolumeBrushTypes.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+    <ClCompile Include="WorldProperties.cpp">
+      <Filter>Source\Game Object Source</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\Shared\PlugFactoryTemplate.h">
+      <Filter>Source\Misc Source</Filter>
+    </ClInclude>
+    <ClInclude Include="AI.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIAlien.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIButeMgr.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AICorporate.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIDunyaExosuit.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIEisenberg.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIExosuit.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMarine.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIMiser.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIPath.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIPlayer.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIPredator.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIQueen.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIRykov.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIRykovExosuit.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIScriptCommands.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AISense.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AISenseHear.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AISenseMgr.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AISenseSee.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIState.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AITarget.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIUtils.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIVolume.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AStar.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AvoidancePath.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="BidMgr.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Goal.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ObstacleMgr.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ParseUtils.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Sense.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SimpleAI.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SimpleAIAlien.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SimpleNode.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SimpleNodeMgr.h">
+      <Filter>Headers\AI Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIStrategy.h">
+      <Filter>Headers\AI Header Files\AIStrategy Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIStrategyAdvance.h">
+      <Filter>Headers\AI Header Files\AIStrategy Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIStrategyApproachTarget.h">
+      <Filter>Headers\AI Header Files\AIStrategy Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIStrategyEngageTarget.h">
+      <Filter>Headers\AI Header Files\AIStrategy Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIStrategyFollowPath.h">
+      <Filter>Headers\AI Header Files\AIStrategy Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIStrategyMove.h">
+      <Filter>Headers\AI Header Files\AIStrategy Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIStrategyRetreat.h">
+      <Filter>Headers\AI Header Files\AIStrategy Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIStrategySetFacing.h">
+      <Filter>Headers\AI Header Files\AIStrategy Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIAlarm.h">
+      <Filter>Headers\AI Header Files\AI Goal Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIAlienAttack.h">
+      <Filter>Headers\AI Header Files\AI Goal Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIAttack.h">
+      <Filter>Headers\AI Header Files\AI Goal Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIChase.h">
+      <Filter>Headers\AI Header Files\AI Goal Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AICombatGoal.h">
+      <Filter>Headers\AI Header Files\AI Goal Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AICower.h">
+      <Filter>Headers\AI Header Files\AI Goal Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIIdle.h">
+      <Filter>Headers\AI Header Files\AI Goal Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIInvestigate.h">
+      <Filter>Headers\AI Header Files\AI Goal Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AILurk.h">
+      <Filter>Headers\AI Header Files\AI Goal Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AINodeCheck.h">
+      <Filter>Headers\AI Header Files\AI Goal Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIPatrol.h">
+      <Filter>Headers\AI Header Files\AI Goal Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIRetreat.h">
+      <Filter>Headers\AI Header Files\AI Goal Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIScript.h">
+      <Filter>Headers\AI Header Files\AI Goal Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AISnipe.h">
+      <Filter>Headers\AI Header Files\AI Goal Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AINode.h">
+      <Filter>Headers\AI Header Files\AINode Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AINodeAlarm.h">
+      <Filter>Headers\AI Header Files\AINode Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AINodeCover.h">
+      <Filter>Headers\AI Header Files\AINode Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AINodeGroup.h">
+      <Filter>Headers\AI Header Files\AINode Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AINodeLadder.h">
+      <Filter>Headers\AI Header Files\AINode Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AINodeMgr.h">
+      <Filter>Headers\AI Header Files\AINode Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AINodePatrol.h">
+      <Filter>Headers\AI Header Files\AINode Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AINodeSnipe.h">
+      <Filter>Headers\AI Header Files\AINode Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AINodeVolume.h">
+      <Filter>Headers\AI Header Files\AINode Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AINodeWallWalk.h">
+      <Filter>Headers\AI Header Files\AINode Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="AIAction.h">
+      <Filter>Headers\AI Header Files\AI Action Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="AIActionMisc.h">
+      <Filter>Headers\AI Header Files\AI Action Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="AIActionMoveTo.h">
+      <Filter>Headers\AI Header Files\AI Action Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="AIAnimButeMgr.h">
+      <Filter>Headers\ButeMgr Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\AnimationButeMgr.h">
+      <Filter>Headers\ButeMgr Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="AttachButeMgr.h">
+      <Filter>Headers\ButeMgr Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\CharacterButeMgr.h">
+      <Filter>Headers\ButeMgr Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\DebrisMgr.h">
+      <Filter>Headers\ButeMgr Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\FXButeMgr.h">
+      <Filter>Headers\ButeMgr Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\GameButeMgr.h">
+      <Filter>Headers\ButeMgr Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\GlobalMgr.h">
+      <Filter>Headers\ButeMgr Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\MissionMgr.h">
+      <Filter>Headers\ButeMgr Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\ModelButeMgr.h">
+      <Filter>Headers\ButeMgr Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="MusicMgr.h">
+      <Filter>Headers\ButeMgr Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\ObjectivesButeMgr.h">
+      <Filter>Headers\ButeMgr Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\PickupButeMgr.h">
+      <Filter>Headers\ButeMgr Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="PropTypeMgr.h">
+      <Filter>Headers\ButeMgr Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ServerAssetMgr.h">
+      <Filter>Headers\ButeMgr Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ServerSoundMgr.h">
+      <Filter>Headers\ButeMgr Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\SoundButeMgr.h">
+      <Filter>Headers\ButeMgr Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\SoundMgr.h">
+      <Filter>Headers\ButeMgr Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="SpawnButeMgr.h">
+      <Filter>Headers\ButeMgr Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\SurfaceMgr.h">
+      <Filter>Headers\ButeMgr Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\WeaponMgr.h">
+      <Filter>Headers\ButeMgr Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="AIPathMgr.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="AIVolumeMgr.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\AssertMgr.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Attachments.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\Callback.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\callback0.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\callback1.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\callback2.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\callback3.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\callback4.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\callback5.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\CharacterAlignment.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\CharacterAnimation.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\CharacterAnimationDefs.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\CharacterFuncs.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="CharacterHitBox.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="CharacterMgr.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\CharacterMovement.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\CharacterMovementDefs.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\CheatDefs.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ClientDeathSFX.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ClientFX.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ClientLightFX.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\ClientServerShared.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ClientSFX.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ClientWeaponSFX.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\CommandIDs.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="CommandMgr.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\CommonUtilities.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\ContainerCodes.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Controller.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\CSDefs.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="CVarTrack.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\DamageTypes.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="DebrisFuncs.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\DebrisTypes.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\DebugLine.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="DebugLineSystem.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="DialogueWindow.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="DisplayTimer.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="DynArray.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Editable.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="fsm.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\FXStructs.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="GameServerShell.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\GameType.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\GibTypes.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\Globals.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="HHWeaponModel.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\HierarchicalButeMgr.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Key.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="KeyData.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="KeyFramer.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="keyframer_light.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\LTString.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\MemoryUtils.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\ModelDefs.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\MsgIDs.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="MultiplayerMgr.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\MultiplayerMgrDefs.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="NodeLine.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectiveMgr.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectMsgs.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectRemover.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleSystem.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="PolyGrid.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="PredDisk.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="PredNet.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Projectile.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ProjectileTypes.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Range.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\ratetracker.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\RCMessage.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Scanner.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\SCDefs.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="SearchLight.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ServerMark.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ServerUtilities.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="SFXFuncs.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\SFXMsgIds.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\SharedBaseFXStructs.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\SharedFXStructs.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\SharedMovement.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\SoundTypes.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Sparam.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Sprinkles.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\Stdafx.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\SurfaceFunctions.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\TemplateList.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Turret.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TurretSense.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Weapon.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\WeaponFXTypes.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Weapons.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="WorldModelDebris.h">
+      <Filter>Headers\Misc Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Alarm.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="AmmoBox.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Beetle.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="BodyProp.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Breakable.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Camera.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Character.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="CinematicTrigger.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Civilian.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="DebrisSpawner.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Destructible.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="DestructibleModel.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Door.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Dripper.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Egg.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="EvacZone.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="EventCounter.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ExitTrigger.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Explosion.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Fire.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="FogVolume.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="GameBase.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="GameStartPoint.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Group.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="HackableLock.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="HackableWorldmodel.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="HingedDoor.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="LaserTrigger.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="LightGroup.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Lightning.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="LightObject.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="MDTrackerItem.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="MultiSpawner.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="MusicVolume.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ObjectiveEvent.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="PickupObject.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Plant.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerObj.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="PredShoulderCannon.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Prop.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="PropType.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="RandomSpawner.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="RotatingDoor.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="RotatingWorldModel.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ScaleSprite.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="ScreenShake.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundFX.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="SoundFXObj.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Spawner.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="SpectatorPoint.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="SpriteControl.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="StarlightView.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Steam.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="StoryObject.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Striker.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Switch.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TeleportPoint.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\Shared\Timer.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TorchableLock.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TorchableLockCounter.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TrailNode.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TranslucentWorldModel.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="Trigger.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="TriggerSound.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="VolumeBrush.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="VolumeBrushTypes.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="WorldProperties.h">
+      <Filter>Headers\Game Object Headers</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="$(LT2_DIR)\lithshared\libs\Release\MFCStub.lib">
+      <Filter>Libs_Release</Filter>
+    </Library>
+    <Library Include="$(LT2_DIR)\lithshared\libs\Release\StdLith.lib">
+      <Filter>Libs_Release</Filter>
+    </Library>
+    <Library Include="$(LT2_DIR)\lithshared\libs\Release\LithTrackMgr.lib">
+      <Filter>Libs_Release</Filter>
+    </Library>
+    <Library Include="$(LT2_DIR)\lithshared\libs\Release\GameSpyMgr.lib">
+      <Filter>Libs_Release</Filter>
+    </Library>
+    <Library Include="$(LT2_DIR)\lithshared\libs\Release\WONAPI.lib">
+      <Filter>Libs_Release</Filter>
+    </Library>
+    <Library Include="$(LT2_DIR)\lithshared\libs\Release\GameSpyMgrDemo.lib">
+      <Filter>Libs_Release</Filter>
+    </Library>
+    <Library Include="$(LT2_DIR)\lithshared\libs\Debug\StdLith.lib">
+      <Filter>Libs_Debug</Filter>
+    </Library>
+    <Library Include="$(LT2_DIR)\lithshared\libs\Debug\MFCStub.lib">
+      <Filter>Libs_Debug</Filter>
+    </Library>
+    <Library Include="$(LT2_DIR)\lithshared\libs\Debug\LithTrackMgr.lib">
+      <Filter>Libs_Debug</Filter>
+    </Library>
+    <Library Include="$(LT2_DIR)\lithshared\libs\Debug\GameSpyMgr.lib">
+      <Filter>Libs_Debug</Filter>
+    </Library>
+    <Library Include="$(LT2_DIR)\lithshared\libs\Debug\GameSpyMgrDemo.lib">
+      <Filter>Libs_Debug</Filter>
+    </Library>
+  </ItemGroup>
+</Project>

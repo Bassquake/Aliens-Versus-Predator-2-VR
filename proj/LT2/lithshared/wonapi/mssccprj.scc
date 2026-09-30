@@ -1,0 +1,9 @@
+SCC = This is a Source Code Control file
+
+[WONAPI.dsp]
+SCC_Aux_Path = "\\Proj\ss\"
+SCC_Project_Name = "$/Libraries/LithTechAVP2/lithshared/wonapi", BLDFAAAA
+
+[WONInternalAPI.dsp]
+SCC_Aux_Path = "\\Proj\ss\"
+SCC_Project_Name = "$/Libraries/LithTechAVP2/lithshared/wonapi", BLDFAAAA
