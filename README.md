@@ -1,5 +1,5 @@
 # Aliens Versus Predator 2: VR
-PCVR mod for Aliens Versus Predator 2 (2001) game. This is for Windows 10 upwards and Steam Link. Untested on Linux. **Don't use Meta Link as it doesn't support 32 bit games**. Virtual Desktop should work but untested.
+PCVR mod for Aliens Versus Predator 2 (2001) game. This is for Windows 10 upwards and Steam Link. Tested on Quest 2 and 3. Untested on Linux. **Don't use Meta Link as it doesn't support 32 bit games**. Virtual Desktop should work but untested.
 
 Should work on medium graphics cards from Nvidia 3060 and upwards.
 
