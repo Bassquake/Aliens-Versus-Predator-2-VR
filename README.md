@@ -13,7 +13,7 @@ Short video of it in action on a Quest 2 here on [YouTube](https://youtu.be/4kNU
 ## Installation
 - Install the Aliens Versus Predator 2 game into its default folder location: **C:\Program Files (x86)\Fox\Aliens vs. Predator 2)**
 - Update it to v1.0.9.6 if it isn't already. Update can be [found here](https://www.gamefront.com/games/aliens-vs-predator-2/file/avp2-update-1-0-9-6).
-- Download my **avp2-vr-x.x.zip** in [Releases](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/releases) and extract to a folder somewhere on your drive.
+- Download my **avp2xr_vx.x.zip** in [Releases](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/releases) and extract to a folder somewhere on your drive.
 - Go to the extracted folder and right click and **Run As Administrator** on **install**. This will copy the necessary files into the game folder, press any key to close the window.
 
 ![Install Files](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/blob/main/captures/avp2-install-files-results.jpg)
