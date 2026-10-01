@@ -6,7 +6,7 @@ only move the arm's nodes, and then the whole model is lit from one reference, s
 light changes with the right hand. This writes copies of such models with each shared piece split
 in two: the triangles on the left arm's nodes into a new piece "<name>_left", the rest kept.
 
-The copies go under deploy/vrrez/Models/..., which install.bat copies into the game's vrrez folder
+The copies go under deploy/vrrez/Models/..., which Install_avp2vr.bat copies into the game's vrrez folder
 (overriding the game's own files). Usage: python tools/splitarms.py
 """
 import os

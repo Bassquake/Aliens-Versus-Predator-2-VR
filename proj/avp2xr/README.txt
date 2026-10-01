@@ -13,7 +13,8 @@ Files
   dgVoodoo.conf            stock 2.87.5 config with OutputAPI = d3d11_fl11_0 (D3D12 output would bypass
                            the hook), dgVoodooWatermark = false, and [DirectX] Resolution = h:4488, v:2352
   deploy\                  everything that goes into the game folder
-  install.bat/uninstall.bat  copy to / remove from the game folder (run as administrator); install.bat also
+  Install_avp2vr.bat       copies deploy\ into the game folder (run as administrator); this includes
+                           Uninstall_avp2vr.bat, which removes it all again (also run as administrator). It also
                            installs deploy\avp2xr.ini (the settings file to edit; the old one is kept as .bak)
                            and deploy\vrrez\cshell.dll (see "Loading the VR cshell" below)
   "AVP2VR_(SteamVR_runtime).bat"  launches the game in VR with SteamVR's 32-bit OpenXR runtime (found through
@@ -76,10 +77,10 @@ Stereo (option 2)
 
 Loading the VR cshell
   The engine only loads cshell.dll/object.lto from its -rez list (avp2cmds.txt, written by the launcher);
-  the retail copies live in AVP2DLL.REZ, and loose DLLs in the game folder are NOT used. install.bat copies
+  the retail copies live in AVP2DLL.REZ, and loose DLLs in the game folder are NOT used. Install_avp2vr.bat copies
   deploy\vrrez\cshell.dll into <game folder>\vrrez, and the VR launchers run lithtech.exe -cmdfile avp2cmds.txt
   -rez vrrez from the game folder; later -rez entries win, so that cshell.dll replaces the retail one.
-  After rebuilding cshell, copy K:\Coding\Aliens-Versus-Predator-2-VR\proj\AVP2\AVP2\cshell.dll to deploy\vrrez\ and run install.bat.
+  After rebuilding cshell, copy K:\Coding\Aliens-Versus-Predator-2-VR\proj\AVP2\AVP2\cshell.dll to deploy\vrrez\ and run Install_avp2vr.bat.
 
 HUD (API version 2)
   In stereo, cshell renders the eyes, calls SubmitStereo(eyes, hudFollows=1) and flips; then it clears to black,

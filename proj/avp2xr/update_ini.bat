@@ -1,6 +1,6 @@
 @echo off
 rem Copies only avp2xr.ini into the AVP2 folder (run as administrator). Works while the game is running,
-rem unlike install.bat (the DLLs are in use then): e.g. to try [LeftHand] settings, which are read at each
+rem unlike Install_avp2vr.bat (the DLLs are in use then): e.g. to try [LeftHand] settings, which are read at each
 rem change of weapon.
 setlocal
 set GAME=C:\Program Files (x86)\Fox\Aliens vs. Predator 2

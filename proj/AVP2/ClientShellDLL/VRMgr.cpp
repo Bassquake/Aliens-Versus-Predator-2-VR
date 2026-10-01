@@ -1808,7 +1808,7 @@ void VRMgr::PlaceLeftArm(HOBJECT hWeapon, WEAPON *pWeapon, int nState)
 
 		// avp2xr.ini [LeftHand] <weapon> = pitch yaw roll [forward up right]: this weapon's own
 		// angle (and offset) for the hand, in place of the LeftHand* ones. Read now, so editing
-		// the ini (and running install.bat) takes effect at the next change of weapon.
+		// the ini (and running Install_avp2vr.bat) takes effect at the next change of weapon.
 		m_vArmOffset = m_vLeftOffset;
 		m_rArmAngle = m_rLeftAngle;
 		char szValue[128] = "";

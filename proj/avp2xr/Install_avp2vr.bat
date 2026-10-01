@@ -5,9 +5,9 @@ rem run this again to apply a change.
 setlocal
 set GAME=C:\Program Files (x86)\Fox\Aliens vs. Predator 2
 net session >nul 2>&1 || (echo Run this as administrator. & pause & exit /b 1)
-for %%f in (DDraw.dll D3DImm.dll dgVoodoo.conf d3d11.dll openxr_loader.dll) do (
-	copy /y "%~dp0deploy\%%f" "%GAME%\" >nul || (echo Failed to copy %%f & pause & exit /b 1)
-	echo Installed %%f
+for %%f in (DDraw.dll D3DImm.dll dgVoodoo.conf d3d11.dll openxr_loader.dll "AVP2VR_(SteamVR_runtime).bat" Uninstall_avp2vr.bat) do (
+	copy /y "%~dp0deploy\%%~f" "%GAME%\" >nul || (echo Failed to copy %%~f & pause & exit /b 1)
+	echo Installed %%~f
 )
 rem The log now lives in %LOCALAPPDATA%\avp2xr; remove the old, never-updated copy here.
 if exist "%GAME%\avp2xr.log" del "%GAME%\avp2xr.log"

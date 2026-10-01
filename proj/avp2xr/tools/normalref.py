@@ -6,7 +6,7 @@ after the root). In VR the left arm follows the left controller, so where that n
 arm, the light on the whole model changed as the hands moved relative to each other: the smartgun
 names its left forearm, and the Alien claw models name nothing and start with the left arm.
 
-The copies go under deploy/vrrez/Models/..., which install.bat copies into the game's vrrez folder
+The copies go under deploy/vrrez/Models/..., which Install_avp2vr.bat copies into the game's vrrez folder
 (it overrides the game's own files, like the VR cshell.dll). Usage: python tools/normalref.py
 """
 import os
