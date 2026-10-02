@@ -71,6 +71,10 @@ Stereo (option 2)
   the right hand to the left (VRTwoHanded 0 turns it off).
   Turning: right stick left/right, avp2xr.ini TurnMode=smooth (SmoothTurnSpeed deg/s at full push, default)
   or snap (SnapTurnAngle degrees per push).
+  Use: acts on what the head looks at, from the head's real position (CInterfaceMgr::FindUseTarget). With
+  nothing usable straight ahead it takes the nearest usable thing within avp2xr.ini UseAngle degrees (default
+  10), found with rays in rings round the look direction; that ray is what's sent to the server, which casts
+  it again as in the game. The activate crosshair uses the same search.
   Recenter: hold the Meta/system button (the runtime recenters; the proxy passes the LOCAL space change on as
   Avp2XrInput::recenterCount and the game re-anchors: view faces the aim, eyes back at the camera height).
   Tests: test\stereotest.cpp (proxy stereo API), test\convtest.cpp (OpenXR -> LithTech pose conversion).

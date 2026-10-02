@@ -5967,6 +5967,9 @@ void CGameClientShell::DoActivate()
 	g_pLTClient->GetObjectRotation(m_CameraMgr.GetCameraObject(m_hPlayerCamera), &rRot);
 	g_pLTClient->GetRotationVectors(&rRot, &vU, &vR, &vF);
 
+	// VR: from the head, towards the usable thing nearest where it looks (see FindUseTarget)
+	m_InterfaceMgr.FindUseTarget(vPos, vF);
+
 	HMESSAGEWRITE hMessage = g_pLTClient->StartMessage(MID_PLAYER_ACTIVATE);
 	g_pLTClient->WriteToMessageVector(hMessage, &vPos);
 	g_pLTClient->WriteToMessageVector(hMessage, &vF);

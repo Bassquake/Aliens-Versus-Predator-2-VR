@@ -279,6 +279,9 @@ class CInterfaceMgr
 
 		void		SetDisconnectError(uint32 nError)	{ m_nDisconnectError = nError; }
 
+		// What Use acts on: vPos/vDir in are the camera's pose, out the ray to send the server
+		XHairMode	FindUseTarget(LTVector &vPos, LTVector &vDir);
+
 
 	private :
 

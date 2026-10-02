@@ -55,6 +55,10 @@ static VarTrack		g_vtVRGripZ;
 // Smooth turn speed at full push, degrees per second (avp2xr.ini SmoothTurnSpeed)
 #define VR_DEFAULT_SMOOTH_TURN	120.0f
 
+// How far off where the head looks Use finds things, degrees (avp2xr.ini UseAngle)
+#define VR_DEFAULT_USE_ANGLE	10.0f
+#define VR_MAX_USE_ANGLE		30.0f
+
 // Weapon cycling opens the game's weapon chooser, which normally waits for the fire button.
 // This long after the last push on the stick, the highlighted weapon is selected.
 #define VR_CYCLE_SELECT_MS		600
@@ -467,6 +471,9 @@ VRMgr::VRMgr()
 	m_bPlayerView = LTFALSE;
 	m_bLastFramePlayerView = LTFALSE;
 	m_rHeadWorld.Init();
+	m_vHeadPos.Init();
+	m_vHeadWorld.Init();
+	m_fUseAngle = VR_DEFAULT_USE_ANGLE;
 	m_bWeaponMoved = LTFALSE;
 	m_bWeaponView = LTFALSE;
 	memset(m_Prof, 0, sizeof(m_Prof));
@@ -625,6 +632,11 @@ LTBOOL VRMgr::FindApi()
 				GetPrivateProfileStringA("VR", "AlwaysRun", "no", szValue, sizeof(szValue), szIni);
 				m_bAlwaysRun = szValue[0] && !strchr("nN0fF", szValue[0]);
 				VRLog("Settings: AlwaysRun=%s", m_bAlwaysRun ? "yes" : "no");
+				GetPrivateProfileStringA("VR", "UseAngle", "10", szValue, sizeof(szValue), szIni);
+				m_fUseAngle = (LTFLOAT)atof(szValue);
+				if(m_fUseAngle < 0.0f) m_fUseAngle = 0.0f;
+				if(m_fUseAngle > VR_MAX_USE_ANGLE) m_fUseAngle = VR_MAX_USE_ANGLE;
+				VRLog("Settings: UseAngle=%.1f", m_fUseAngle);
 
 				// The logo videos at startup: the game's own NoMovies switch (checked before each video,
 				// which starts after the splash screen, so this is set in time)
@@ -1232,6 +1244,8 @@ void VRMgr::GetEyeCamera(int nEye, HCAMERA hCamera, const LTVector &vPos, const 
 	const float *ref = (hCamera == m_hPlayerCamera) ? m_fHeadRef : s_fNoRef;
 	LTFLOAT fScale = g_vtVRWorldScale.GetFloat();
 	vEyePos = vPos + Rotate(rYaw, FromXrPos(view.position, ref) * fScale);
+	if(hCamera == m_hPlayerCamera)
+		m_vHeadPos = (nEye == 0) ? vEyePos : (m_vHeadPos + vEyePos) * 0.5f;
 
 	// The aiming controller in the world, for drawing the weapon there
 	if(nEye == 0 && hCamera == m_hPlayerCamera && m_bInput && m_Input.aimValid)
@@ -1395,6 +1409,8 @@ void VRMgr::EndFrame()
 	{
 		m_rHeadWorld = YawRotation(m_fAnchorYaw) * FromXr(m_Views[0].orientation);
 		m_fHeadYaw = YawOf(m_rHeadWorld);
+		if(m_bPlayerView)
+			m_vHeadWorld = m_vHeadPos;
 	}
 
 	m_bStereo = LTFALSE;
@@ -1472,6 +1488,16 @@ LTBOOL VRMgr::GetHeadDirection(LTVector &vDir) const
 		return LTFALSE;
 
 	vDir = Rotate(m_rHeadWorld, LTVector(0.0f, 0.0f, 1.0f));
+	return LTTRUE;
+}
+
+LTBOOL VRMgr::GetHeadPose(LTVector &vPos, LTRotation &rRot) const
+{
+	if(!m_bLastFramePlayerView)
+		return LTFALSE;
+
+	vPos = m_vHeadWorld;
+	rRot = m_rHeadWorld;
 	return LTTRUE;
 }
 

@@ -909,7 +909,8 @@ void CInterfaceMgr::UpdatePlayingState()
 	// What you look at decides the activate crosshair (Use acts on what you look at). VR: with a
 	// tool in hand (hacking device, welding torch), what it's pointed at decides its own crosshair
 	// (hack, weld, cut), since the tool works from the controller; that one is drawn at the aim.
-	XHairMode eActMode = FindActivateMode(vCamPos, vF);
+	LTVector vUsePos = vCamPos, vUseDir = vF;
+	XHairMode eActMode = FindUseTarget(vUsePos, vUseDir);
 	LTBOOL bToolAim = LTFALSE;
 	WEAPON* pActWep = g_pGameClientShell->GetWeaponModel()->GetWeapon();
 	LTVector vAimPos;
@@ -5371,6 +5372,66 @@ XHairMode CInterfaceMgr::FindActivateMode(LTVector vPos, LTVector vDir)
 	}
 
 	return eRval;
+}
+
+// ----------------------------------------------------------------------- //
+//
+//	ROUTINE:	CInterfaceMgr::FindUseTarget()
+//
+//	PURPOSE:	What Use acts on. vPos/vDir come in as the camera's pose and go
+//				out as the ray to send the server (which casts it again).
+//				VR: the ray starts at the head (leaning in counts), and when
+//				nothing usable is straight ahead, the nearest usable thing
+//				within avp2xr.ini UseAngle of where the head looks is taken
+//				(rays in rings out from the centre), so a switch needn't be
+//				looked at exactly.
+//
+// ----------------------------------------------------------------------- //
+
+// Spacing of the rays, degrees, between rings and around each ring
+#define USE_RAY_STEP	2.0f
+
+XHairMode CInterfaceMgr::FindUseTarget(LTVector &vPos, LTVector &vDir)
+{
+	VRMgr *pVR = g_pGameClientShell->GetVRMgr();
+	LTVector vHeadPos;
+	LTRotation rHead;
+	if(!pVR->GetHeadPose(vHeadPos, rHead))
+		return FindActivateMode(vPos, vDir);
+
+	LTVector vU, vR, vF;
+	g_pLTClient->GetRotationVectors(&rHead, &vU, &vR, &vF);
+	vPos = vHeadPos;
+	vDir = vF;
+
+	XHairMode eMode = FindActivateMode(vPos, vF);
+	LTFLOAT fMaxAngle = pVR->GetUseAngle();
+	if(eMode != XHM_TARGETING || fMaxAngle <= 0.0f)
+		return eMode;
+
+	int nRings = (int)ceil(fMaxAngle / USE_RAY_STEP);
+	for(int nRing = 1; nRing <= nRings; nRing++)
+	{
+		LTFLOAT fAngle = fMaxAngle * nRing / nRings;
+		LTFLOAT fTan = (LTFLOAT)tan(MATH_DEGREES_TO_RADIANS(fAngle));
+		int nRays = (int)ceil(MATH_CIRCLE * fAngle / USE_RAY_STEP);
+		if(nRays < 6) nRays = 6;
+		for(int nRay = 0; nRay < nRays; nRay++)
+		{
+			// Every other ring is turned half a step, so the rays don't line up
+			LTFLOAT fAround = MATH_CIRCLE * (nRay + (nRing & 1) * 0.5f) / nRays;
+			LTVector vTry = vF + (vR * (LTFLOAT)cos(fAround) + vU * (LTFLOAT)sin(fAround)) * fTan;
+			vTry.Norm();
+			eMode = FindActivateMode(vPos, vTry);
+			if(eMode != XHM_TARGETING)
+			{
+				vDir = vTry;
+				return eMode;
+			}
+		}
+	}
+
+	return XHM_TARGETING;
 }
 
 

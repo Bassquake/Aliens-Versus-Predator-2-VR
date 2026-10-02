@@ -127,6 +127,15 @@ class VRMgr
 		// tracker, the flashlight, what other players see.
 		LTBOOL		GetHeadDirection(LTVector &vDir) const;
 
+		// Where the head is (between the eyes, real head movement included) and how it's turned in
+		// the world, from the last stereo frame of the player's view: Use acts on what you look at
+		// from here (the game's camera position leaves out leaning towards a switch).
+		LTBOOL		GetHeadPose(LTVector &vPos, LTRotation &rRot) const;
+
+		// avp2xr.ini UseAngle, degrees: Use (and its crosshair) finds something to use this far
+		// off where the head looks, when nothing is straight ahead. 0 = straight ahead only.
+		LTFLOAT		GetUseAngle() const					{ return m_fUseAngle; }
+
 		// Where shots start (the weapon's muzzle; the controller for melee) and the aim, from the
 		// last stereo frame. Shots are fired from here along its forward, instead of from the camera.
 		LTBOOL		GetAimPose(LTVector &vPos, LTRotation &rRot) const;
@@ -239,6 +248,9 @@ class VRMgr
 		LTBOOL			m_bPlayerView;			// the player's own camera is rendered in stereo this frame
 		LTBOOL			m_bLastFramePlayerView;
 		LTRotation		m_rHeadWorld;			// head rotation in the world in the last stereo frame
+		LTVector		m_vHeadPos;				// between the player view's eyes in the world, this frame
+		LTVector		m_vHeadWorld;			// ...in the last stereo frame
+		LTFLOAT			m_fUseAngle;			// avp2xr.ini UseAngle
 		LTVector		m_vAimPos;				// aiming controller pose in the world
 		LTBOOL			m_bGripWorld;			// m_vGripPos is set for this frame
 		LTVector		m_vGripPos;				// the aiming controller's grip pose (palm) in the world
