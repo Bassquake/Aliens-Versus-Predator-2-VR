@@ -107,6 +107,11 @@ Resolution (API version 3)
   you change SteamVR's render resolution, update [DirectX] Resolution to match. cshell reports the game's own
   resolution via SetGameResolution so the HUD panel and flat screen keep the game's aspect ratio.
 
+Gamma
+  avp2xr.ini Gamma (default 1 = off): the proxy copies the stereo frame and draws it back through
+  pow(colour, 1/Gamma) before the crosshair and the copy to the headset (ApplyGamma), so above 1 lifts the
+  shadows. One full-frame copy and pass, only when it isn't 1. Menus and the HUD aren't changed.
+
 Performance
   cshell.log: "Frame timing" every 2 s (wait / eyes / eye flip / HUD / HUD flip+game). avp2xr.log: "Proxy timing"
   (xrWaitFrame, eye copy, monitor present, HUD capture, xrEndFrame). Under SteamVR the frame pacing wait is in

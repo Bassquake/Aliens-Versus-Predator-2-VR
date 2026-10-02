@@ -190,7 +190,10 @@ static struct
 	// AdjustHandsLive: the Adjust binding (hand adjust mode in the game) is only bound when yes, so its
 	// inputs (by default left stick click + right B) otherwise just do their own actions
 	int adjustHandsLive;
-} g_cfg = { 2.0f, 3.0f, 0.0f, 1.5f, 2.25f, 0.0f, 1, 0, 0.5f, 1.0f, 1, 1, 0 };
+	// Gamma for the eye images in the headset: above 1 brightens the darker tones (shadows) while
+	// black and white stay put; 1 = as the game draws them (no extra pass)
+	float gamma;
+} g_cfg = { 2.0f, 3.0f, 0.0f, 1.5f, 2.25f, 0.0f, 1, 0, 0.5f, 1.0f, 1, 1, 0, 1.0f };
 
 static float IniFloat(const wchar_t* ini, const wchar_t* key, float def)
 {
@@ -224,10 +227,13 @@ static void LoadSettings()
 	wchar_t adjust[16];
 	GetPrivateProfileStringW(L"VR", L"AdjustHandsLive", L"no", adjust, 16, ini);
 	g_cfg.adjustHandsLive = adjust[0] && !wcschr(L"nN0fF", adjust[0]);
-	Log("Settings: ScreenDistance=%.2f ScreenWidth=%.2f ScreenHeight=%.2f HudDistance=%.2f HudWidth=%.2f HudHeight=%.2f DesktopMirror=%d MirrorEye=%s PanelScale=%.2f MirrorFillScreen=%s FocusGameWindow=%s AdjustHandsLive=%s",
+	g_cfg.gamma = IniFloat(ini, L"Gamma", g_cfg.gamma);
+	if (g_cfg.gamma < 0.5f) g_cfg.gamma = 0.5f;
+	if (g_cfg.gamma > 3.0f) g_cfg.gamma = 3.0f;
+	Log("Settings: ScreenDistance=%.2f ScreenWidth=%.2f ScreenHeight=%.2f HudDistance=%.2f HudWidth=%.2f HudHeight=%.2f DesktopMirror=%d MirrorEye=%s PanelScale=%.2f MirrorFillScreen=%s FocusGameWindow=%s AdjustHandsLive=%s Gamma=%.2f",
 		g_cfg.distance, g_cfg.width, g_cfg.height, g_cfg.hudDistance, g_cfg.hudWidth, g_cfg.hudHeight, g_cfg.desktopMirror,
 		g_cfg.mirrorEye == 1 ? "right" : g_cfg.mirrorEye == 2 ? "both" : "left", g_cfg.panelScale, g_cfg.mirrorFill ? "yes" : "no", g_cfg.focusWindow ? "yes" : "no",
-		g_cfg.adjustHandsLive ? "yes" : "no");
+		g_cfg.adjustHandsLive ? "yes" : "no", g_cfg.gamma);
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -316,6 +322,7 @@ static XrTime g_recenterPendingTime;  // when a pending recenter takes effect; 0
 static void DestroyHud();
 static void DestroyMirror();
 static void DestroyCrosshair();
+static void DestroyGamma();
 static void ResetInput();
 static void InitInput();
 static bool g_waitingForHmd;  // xrGetSystem said no headset; retry later
@@ -353,6 +360,7 @@ static void XrShutdown(bool disable)
 		DestroySwapchain();
 		DestroyMirror();
 		DestroyCrosshair();
+		DestroyGamma();
 		DestroyHud();
 		if (g_space)
 			x_xrDestroySpace(g_space);
@@ -2711,6 +2719,157 @@ static bool UpdateCrosshairTexture()
 	return ok;
 }
 
+// ----------------------------------------------------------------------- //
+// Gamma (avp2xr.ini Gamma): the stereo frame in the back buffer is copied and drawn back through
+// pow(colour, 1 / Gamma), before the crosshair and before the eyes go to the headset (the monitor
+// mirror shows it too). Uses the HUD's own pipeline state, like the crosshair.
+
+static const char g_gammaShaderSource[] =
+	"Texture2D image : register(t0);\n"
+	"cbuffer Params : register(b0) { float4 power; };\n"
+	"float4 VSMain(uint id : SV_VertexID) : SV_Position\n"
+	"{\n"
+	"	float2 t = float2(id & 1, id >> 1);\n"  // a strip of 4 filling the viewport
+	"	return float4(t * float2(2, -2) + float2(-1, 1), 0, 1);\n"
+	"}\n"
+	"float4 PSMain(float4 pos : SV_Position) : SV_Target\n"
+	"{\n"
+	"	float4 c = image.Load(int3(pos.xy, 0));\n"
+	"	return float4(pow(saturate(c.rgb), power.x), c.a);\n"
+	"}\n";
+
+static ID3D11VertexShader* g_gammaVs;
+static ID3D11PixelShader* g_gammaPs;
+static ID3D11Buffer* g_gammaParams;
+static ID3D11Texture2D* g_gammaCopy;  // the frame before the pass, same size and format as the back buffer
+static ID3D11ShaderResourceView* g_gammaSrv;
+static bool g_gammaBroken;  // setup failed once; no gamma from then on
+
+static void DestroyGamma()
+{
+	SafeRelease(g_gammaSrv);
+	SafeRelease(g_gammaCopy);
+	SafeRelease(g_gammaParams);
+	SafeRelease(g_gammaPs);
+	SafeRelease(g_gammaVs);
+	g_gammaBroken = false;
+}
+
+static bool CreateGammaPipeline()
+{
+	HMODULE compiler = LoadLibraryW(L"d3dcompiler_47.dll");
+	pD3DCompile compile = compiler ? (pD3DCompile)GetProcAddress(compiler, "D3DCompile") : nullptr;
+	if (!compile)
+		return false;
+
+	ID3DBlob* vs = nullptr;
+	ID3DBlob* ps = nullptr;
+	ID3DBlob* errors = nullptr;
+	bool ok = false;
+	D3D11_BUFFER_DESC bd = {};
+	bd.ByteWidth = 16;
+	bd.Usage = D3D11_USAGE_DEFAULT;
+	bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+	if (FAILED(compile(g_gammaShaderSource, sizeof(g_gammaShaderSource) - 1, "avp2xr_gamma", nullptr, nullptr, "VSMain", "vs_4_0", 0, 0, &vs, &errors)) ||
+		FAILED(compile(g_gammaShaderSource, sizeof(g_gammaShaderSource) - 1, "avp2xr_gamma", nullptr, nullptr, "PSMain", "ps_4_0", 0, 0, &ps, &errors)))
+		Log("Gamma: shader compile failed: %s", errors ? (const char*)errors->GetBufferPointer() : "?");
+	else if (FAILED(g_device->CreateVertexShader(vs->GetBufferPointer(), vs->GetBufferSize(), nullptr, &g_gammaVs)) ||
+		FAILED(g_device->CreatePixelShader(ps->GetBufferPointer(), ps->GetBufferSize(), nullptr, &g_gammaPs)) ||
+		FAILED(g_device->CreateBuffer(&bd, nullptr, &g_gammaParams)))
+		Log("Gamma: shader or constant buffer creation failed");
+	else
+		ok = true;
+	SafeRelease(vs);
+	SafeRelease(ps);
+	SafeRelease(errors);
+	return ok;
+}
+
+static void ApplyGamma(IDXGISwapChain* sc)
+{
+	if (g_cfg.gamma == 1.0f || g_gammaBroken)
+		return;
+	if (((!g_hudState || !g_context1) && !CreateHudPipeline()) || (!g_gammaVs && !CreateGammaPipeline()))
+	{
+		Log("Gamma: can't be applied");
+		DestroyGamma();
+		g_gammaBroken = true;
+		return;
+	}
+
+	ID3D11Texture2D* backBuffer = nullptr;
+	if (FAILED(sc->GetBuffer(0, IID_PPV_ARGS(&backBuffer))))
+		return;
+	D3D11_TEXTURE2D_DESC bb;
+	backBuffer->GetDesc(&bb);
+
+	// The copy to read from, made again if the back buffer changes size or format
+	if (g_gammaCopy)
+	{
+		D3D11_TEXTURE2D_DESC cd;
+		g_gammaCopy->GetDesc(&cd);
+		if (cd.Width != bb.Width || cd.Height != bb.Height || cd.Format != bb.Format)
+		{
+			SafeRelease(g_gammaSrv);
+			SafeRelease(g_gammaCopy);
+		}
+	}
+	ID3D11RenderTargetView* rtv = nullptr;
+	if (!g_gammaCopy)
+	{
+		D3D11_TEXTURE2D_DESC cd = bb;
+		cd.MipLevels = 1;
+		cd.ArraySize = 1;
+		cd.Usage = D3D11_USAGE_DEFAULT;
+		cd.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+		cd.CPUAccessFlags = 0;
+		cd.MiscFlags = 0;
+		if (bb.SampleDesc.Count != 1 || FAILED(g_device->CreateTexture2D(&cd, nullptr, &g_gammaCopy)) ||
+			FAILED(g_device->CreateShaderResourceView(g_gammaCopy, nullptr, &g_gammaSrv)))
+		{
+			Log("Gamma: can't copy the back buffer (format %d, samples %u)", (int)bb.Format, bb.SampleDesc.Count);
+			SafeRelease(g_gammaSrv);
+			SafeRelease(g_gammaCopy);
+			g_gammaBroken = true;
+			backBuffer->Release();
+			return;
+		}
+		Log("Gamma: %.2f on the eye images (%ux%u)", g_cfg.gamma, bb.Width, bb.Height);
+	}
+	if (!(bb.BindFlags & D3D11_BIND_RENDER_TARGET) || FAILED(g_device->CreateRenderTargetView(backBuffer, nullptr, &rtv)))
+	{
+		Log("Gamma: the back buffer can't be drawn to (bind flags %x)", bb.BindFlags);
+		g_gammaBroken = true;
+		backBuffer->Release();
+		return;
+	}
+	g_context->CopyResource(g_gammaCopy, backBuffer);
+
+	ID3DDeviceContextState* previous = nullptr;
+	g_context1->SwapDeviceContextState(g_hudState, &previous);
+	g_context1->OMSetRenderTargets(1, &rtv, nullptr);
+	g_context1->OMSetBlendState(nullptr, nullptr, 0xffffffff);
+	g_context1->RSSetState(nullptr);
+	g_context1->IASetInputLayout(nullptr);
+	g_context1->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	g_context1->VSSetShader(g_gammaVs, nullptr, 0);
+	g_context1->PSSetShader(g_gammaPs, nullptr, 0);
+	g_context1->PSSetShaderResources(0, 1, &g_gammaSrv);
+	g_context1->PSSetConstantBuffers(0, 1, &g_gammaParams);
+	float params[4] = { 1.0f / g_cfg.gamma, 0.0f, 0.0f, 0.0f };
+	g_context1->UpdateSubresource(g_gammaParams, 0, nullptr, params, 0, 0);
+	D3D11_VIEWPORT vp = { 0.0f, 0.0f, (float)bb.Width, (float)bb.Height, 0.0f, 1.0f };
+	g_context1->RSSetViewports(1, &vp);
+	g_context1->Draw(4, 0);
+	ID3D11ShaderResourceView* noSrv = nullptr;
+	g_context1->PSSetShaderResources(0, 1, &noSrv);
+	g_context1->OMSetRenderTargets(0, nullptr, nullptr);
+	g_context1->SwapDeviceContextState(previous, nullptr);
+	SafeRelease(previous);
+	rtv->Release();
+	backBuffer->Release();
+}
+
 // Draws the crosshairs the game gave for this frame over the eyes in the back buffer
 static void DrawCrosshairs(IDXGISwapChain* sc)
 {
@@ -2922,7 +3081,10 @@ static PresentAction XrFrame(IDXGISwapChain* sc)
 		if (!g_stereoSubmitted)
 			copied = screenPanel = CapturePanel(g_screen, sc);
 		else
+		{
+			ApplyGamma(sc);
 			DrawCrosshairs(sc);
+		}
 		if (!copied)
 			copied = CopyFrame(sc);
 	}
