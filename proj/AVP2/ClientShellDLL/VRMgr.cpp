@@ -55,6 +55,11 @@ static VarTrack		g_vtVRGripZ;
 // Smooth turn speed at full push, degrees per second (avp2xr.ini SmoothTurnSpeed)
 #define VR_DEFAULT_SMOOTH_TURN	120.0f
 
+// Switching weapons, seconds for the left arm to ease over to the animation as the old weapon is
+// lowered, and back onto the left controller once the new one is up (see m_fArmBlend)
+#define VR_ARM_RELEASE_TIME		0.15f
+#define VR_ARM_RETURN_TIME		0.3f
+
 // How far off where the head looks Use finds things, degrees (avp2xr.ini UseAngle)
 #define VR_DEFAULT_USE_ANGLE	10.0f
 #define VR_MAX_USE_ANGLE		30.0f
@@ -498,6 +503,7 @@ VRMgr::VRMgr()
 	m_rArmAngle.Init();
 	m_fTwoHandDown = 0.0f;
 	m_fTwoHandBlend = 0.0f;
+	m_fArmBlend = 0.0f;
 	m_rGripToAim.Init();
 	m_hArmModel = LTNULL;
 	m_pArmWeapon = LTNULL;
@@ -530,6 +536,11 @@ VRMgr::VRMgr()
 	m_mArmPassInv.Identity();
 	m_mArmPassMove.Identity();
 	m_bArmSeen = LTFALSE;
+	memset(m_bPose, 0, sizeof(m_bPose));
+	m_mPoseRefInv.Identity();
+	m_bPoseRef = LTFALSE;
+	m_mCopyRef.Identity();
+	m_bCopyRef = LTFALSE;
 	m_bArmHeld = LTFALSE;
 	m_vArmPalm.Init();
 	m_fExtraFOVX = m_fExtraFOVY = 0.0f;
@@ -1811,6 +1822,7 @@ void VRMgr::PlaceLeftArm(HOBJECT hWeapon, WEAPON *pWeapon, int nState)
 		m_bArmHeld = LTFALSE;
 		m_bArmActive = LTFALSE;
 		m_nArmForced = -1;
+		m_fArmBlend = 0.0f;
 		const char *szRoot = "none";
 		m_hArmRoot = FindNodeHandle(hWeapon, s_szLeftArmNodes, 4, &szRoot);
 		int nHand = 0;
@@ -1824,7 +1836,12 @@ void VRMgr::PlaceLeftArm(HOBJECT hWeapon, WEAPON *pWeapon, int nState)
 			m_hArmRef = INVALID_MODEL_NODE;
 		if(m_hArmRoot == INVALID_MODEL_NODE || m_hArmHand[0] == INVALID_MODEL_NODE || m_hArmRef == INVALID_MODEL_NODE)
 			m_hArmRoot = INVALID_MODEL_NODE;
-		g_pLTClient->ModelNodeControl(hWeapon, (m_hArmRoot != INVALID_MODEL_NODE && m_nArmSplit < 0) ? LeftArmNodeControl : LTNULL, this);
+		memset(m_bPose, 0, sizeof(m_bPose));
+		m_bPoseRef = LTFALSE;
+		NodeControlFn pfnControl = LTNULL;
+		if(m_hArmRoot != INVALID_MODEL_NODE)
+			pfnControl = (m_nArmSplit < 0) ? LeftArmNodeControl : WeaponPoseNodeControl;
+		g_pLTClient->ModelNodeControl(hWeapon, pfnControl, this);
 		m_bArmCopyPieces = LTFALSE;
 		// With node control the engine works the model's extent out from its nodes, and the moved arm
 		// then shifts where the model is lit from: moving the left hand changed the light on the whole
@@ -1851,6 +1868,15 @@ void VRMgr::PlaceLeftArm(HOBJECT hWeapon, WEAPON *pWeapon, int nState)
 			szName[0] ? szName : "?", nValues >= 3 ? szValue : "(not set: the LeftHand* settings)",
 			m_nArmSplit >= 0 ? "drawn as a copy of the model (its own pieces)" : "moved by node control");
 	}
+
+	// Switching weapons, the arm is the animation's while the weapon is lowered and raised (it
+	// swings the arm about, and holding the hand on the controller against it made it jump), and
+	// eases back onto the controller once the new weapon is up
+	LTFLOAT fFrameTime = g_pLTClient->GetFrameTime();
+	if(nState == W_SELECT || nState == W_DESELECT)
+		m_fArmBlend = (m_fArmBlend - fFrameTime / VR_ARM_RELEASE_TIME > 0.0f) ? m_fArmBlend - fFrameTime / VR_ARM_RELEASE_TIME : 0.0f;
+	else
+		m_fArmBlend = (m_fArmBlend + fFrameTime / VR_ARM_RETURN_TIME < 1.0f) ? m_fArmBlend + fFrameTime / VR_ARM_RETURN_TIME : 1.0f;
 
 	// Without the left controller (or a left arm) the arm's move stops; otherwise the last one
 	// stays until this one is worked out
@@ -1943,6 +1969,19 @@ void VRMgr::PlaceLeftArm(HOBJECT hWeapon, WEAPON *pWeapon, int nState)
 	else
 		m_fTwoHandBlend = (m_fTwoHandBlend - fStep > 0.0f) ? m_fTwoHandBlend - fStep : 0.0f;
 	vTarget.y -= m_fTwoHandBlend * m_fTwoHandDown / m_fWeaponScale;
+
+	// Part way back from the animation (see m_fArmBlend): the arm turned part of the way and the
+	// palm part of the way to the controller, eased in and out
+	if(m_fArmBlend < 1.0f)
+	{
+		LTFLOAT fBlend = m_fArmBlend * m_fArmBlend * (3.0f - 2.0f * m_fArmBlend);
+		LTRotation rNone;
+		rNone.Init();
+		LTRotation rFull = rArm;
+		g_pLTClient->InterpolateRotation(&rArm, &rNone, &rFull, fBlend);
+		vTarget = m_vArmPalm + (vTarget - m_vArmPalm) * fBlend;
+	}
+
 	LTVector vR = Rotate(rArm, LTVector(1.0f, 0.0f, 0.0f));
 	LTVector vU = Rotate(rArm, LTVector(0.0f, 1.0f, 0.0f));
 	LTVector vF = Rotate(rArm, LTVector(0.0f, 0.0f, 1.0f));
@@ -2076,6 +2115,45 @@ void VRMgr::LeftArmNodeControl(HOBJECT hObj, HMODELNODE hNode, LTMatrix *pGlobal
 	}
 }
 
+// The weapon model with its left arm drawn as a copy: each node's transform relative to the root
+// node as the engine poses it (with any blend between animations), for the copy to take. The root
+// comes first in the pass.
+void VRMgr::WeaponPoseNodeControl(HOBJECT hObj, HMODELNODE hNode, LTMatrix *pGlobalMat, void *pUserData)
+{
+	VRMgr *pMgr = (VRMgr*)pUserData;
+	if(hObj != pMgr->m_hArmModel || hNode >= MAX_POSE_NODES)
+		return;
+	if(hNode == pMgr->m_hArmRef)
+	{
+		pMgr->m_mPoseRefInv = *pGlobalMat;
+		pMgr->m_bPoseRef = pMgr->m_mPoseRefInv.Inverse();
+		return;
+	}
+	if(pMgr->m_bPoseRef)
+	{
+		pMgr->m_mPose[hNode] = pMgr->m_mPoseRefInv * (*pGlobalMat);
+		pMgr->m_bPose[hNode] = LTTRUE;
+	}
+}
+
+// The left-arm copy: each node where the weapon model has it relative to the root node, from the
+// copy's own root (which carries the copy's placement), so its arm moves exactly as the weapon's
+// would, blends included.
+void VRMgr::ArmCopyNodeControl(HOBJECT hObj, HMODELNODE hNode, LTMatrix *pGlobalMat, void *pUserData)
+{
+	VRMgr *pMgr = (VRMgr*)pUserData;
+	if(hObj != pMgr->m_hArmCopy || hNode >= MAX_POSE_NODES)
+		return;
+	if(hNode == pMgr->m_hArmRef)
+	{
+		pMgr->m_mCopyRef = *pGlobalMat;
+		pMgr->m_bCopyRef = LTTRUE;
+		return;
+	}
+	if(pMgr->m_bCopyRef && pMgr->m_bPose[hNode])
+		*pGlobalMat = pMgr->m_mCopyRef * pMgr->m_mPose[hNode];
+}
+
 // ----------------------------------------------------------------------- //
 // The railgun zoom's green overlay normally covers the view (a really-close sprite straight ahead
 // of the camera). In VR the gun aims on its own, so the overlay follows it:
@@ -2167,7 +2245,11 @@ void VRMgr::OnWeaponModelFiles(HOBJECT hWeapon, const ObjectCreateStruct *pStruc
 	else
 		g_pLTClient->Common()->SetObjectFilenames(m_hArmCopy, (ObjectCreateStruct*)pStruct);
 	if(m_hArmCopy)
+	{
 		g_pLTClient->SetModelLooping(m_hArmCopy, LTFALSE);
+		m_bCopyRef = LTFALSE;
+		g_pLTClient->ModelNodeControl(m_hArmCopy, ArmCopyNodeControl, this);
+	}
 	VRLog("Left arm copy for %s: %s", szBase, m_hArmCopy ? "made" : "COULDN'T BE MADE");
 }
 
@@ -2224,19 +2306,24 @@ void VRMgr::PlaceArmCopy(HOBJECT hWeapon, const LTVector &vMove, const LTRotatio
 		}
 	}
 
-	// Posed like the weapon model: same animation and time (the copy doesn't send model keys)
+	// Its nodes take the weapon model's pose (ArmCopyNodeControl), which follows the weapon's blends
+	// between animations. Its own animation is kept on the weapon's too, for any node not seen on
+	// the weapon yet: at the same time, not playing by itself (the engine advancing it as well put it
+	// ahead of the weapon by a varying amount) and not blending (the copy doesn't send model keys).
 	LTAnimTracker *pMain = LTNULL, *pCopy = LTNULL;
 	if(pModelLT->GetMainTracker(hWeapon, pMain) == LT_OK && pMain &&
 	   pModelLT->GetMainTracker(m_hArmCopy, pCopy) == LT_OK && pCopy)
 	{
+		pModelLT->SetPlaying(pCopy, LTFALSE);
+		pModelLT->SetAllowTransition(pCopy, LTFALSE);
 		HMODELANIM hAnim = INVALID_MODEL_ANIM, hCopyAnim = INVALID_MODEL_ANIM;
 		pModelLT->GetCurAnim(pMain, hAnim);
 		pModelLT->GetCurAnim(pCopy, hCopyAnim);
 		if(hAnim != hCopyAnim && hAnim != INVALID_MODEL_ANIM)
 			pModelLT->SetCurAnim(pCopy, hAnim);
 		uint32 nTime = 0;
-		pModelLT->GetCurAnimTime(pMain, nTime);
-		pModelLT->SetCurAnimTime(pCopy, nTime);
+		pModelLT->GetCurAnimTime(pMain, nTime, LTFALSE);
+		pModelLT->SetCurAnimTime(pCopy, nTime, LTFALSE);
 	}
 
 	// Seen the same way (flags: visibility, translucency, environment map; colour: cloaking)

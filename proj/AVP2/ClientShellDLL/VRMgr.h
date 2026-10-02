@@ -168,6 +168,8 @@ class VRMgr
 		void		PlaceRailOverlay(const LTVector &vEyePos, const LTRotation &rEyeRot);
 		void		PlaceArmCopy(HOBJECT hWeapon, const LTVector &vMove, const LTRotation &rArm);
 		static void	LeftArmNodeControl(HOBJECT hObj, HMODELNODE hNode, LTMatrix *pGlobalMat, void *pUserData);
+		static void	WeaponPoseNodeControl(HOBJECT hObj, HMODELNODE hNode, LTMatrix *pGlobalMat, void *pUserData);
+		static void	ArmCopyNodeControl(HOBJECT hObj, HMODELNODE hNode, LTMatrix *pGlobalMat, void *pUserData);
 		void		UpdateButtons();
 		void		UpdateMenus();
 		void		LeaveMenus();
@@ -287,6 +289,8 @@ class VRMgr
 		LTFLOAT			m_fTwoHandDown;			// avp2xr.ini TwoHandedHandDown, world units: the left hand goes this far
 												// below the gun while two-handed, so it doesn't sit in the barrel
 		LTFLOAT			m_fTwoHandBlend;		// 0-1, eases the hand down and back up
+		LTFLOAT			m_fArmBlend;			// 0-1: the arm is the animation's (0, while switching weapons)
+												// or the controller's (1), eased between
 		LTRotation		m_rGripToAim;			// the right controller's aim pose relative to its grip pose
 		HOBJECT			m_hArmModel;			// the model the node control is on
 		struct WEAPON	*m_pArmWeapon;			// ...and the weapon it was set up for
@@ -326,6 +330,16 @@ class VRMgr
 		LTBOOL			m_bArmCopyActive;		// the copy is drawn this frame, at:
 		LTVector		m_vArmCopyOrigin;		// (world, full size, like m_vWeaponOrigin)
 		LTRotation		m_rArmCopyRot;
+		// The copy takes the weapon model's pose as the engine works it out (blends between animations
+		// included; the copy's own animation can't blend the same way): each node relative to the
+		// model's root node, recorded by WeaponPoseNodeControl and applied by ArmCopyNodeControl
+		enum { MAX_POSE_NODES = 256 };
+		LTMatrix		m_mPose[MAX_POSE_NODES];
+		LTBOOL			m_bPose[MAX_POSE_NODES];
+		LTMatrix		m_mPoseRefInv;			// the weapon's root node in this pass, inverted
+		LTBOOL			m_bPoseRef;
+		LTMatrix		m_mCopyRef;				// the copy's root node in its pass
+		LTBOOL			m_bCopyRef;
 		LTBOOL			m_bArmHeld;				// m_vArmPalm and the hand frames are from the idle pose
 		LTVector		m_vArmPalm;				// model-space left palm held while the weapon animates
 		LTBOOL			m_bArmMatch;			// the frames below are set: the hand turns to mirror the right
