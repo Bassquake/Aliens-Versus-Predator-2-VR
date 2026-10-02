@@ -91,6 +91,10 @@ class CWeaponModel
 		CMuzzleFlashFX* GetMuzzleFlash() const	{ return m_pMuzzleFlash; }
 		CPVFXMgr*	GetPVFXMgr()				{ return &m_PVFXMgr; }
 
+		// VR: puts the attachments (the blowtorch's dark glass) on their sockets again, after the
+		// model has been moved for an eye
+		void		PlaceAttachmentsForView()	{ UpdateAttachments(); }
+
 		int GetWeaponId()	const { return m_nWeaponId; }
 		int GetAmmoId()		const { return m_nAmmoId; }
 		int GetAmmoInClip(BARREL* pBarrel);

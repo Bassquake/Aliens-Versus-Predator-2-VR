@@ -2187,6 +2187,9 @@ void VRMgr::PlaceWeaponForEye(const LTVector &vEyePos, const LTRotation &rEyeRot
 	g_pLTClient->SetObjectPos(hWeapon, &vPos, LTTRUE);
 	g_pLTClient->SetObjectRotation(hWeapon, &rRot);
 
+	// Its attachments (the blowtorch's dark glass) go back on their sockets as it's now placed
+	pWeapon->PlaceAttachmentsForView();
+
 	// The flash's really-close parts go at the muzzle the same way. The game puts them back at
 	// its own place every frame it shows them.
 	// So do the weapon's own fx at its sockets (the flamethrower's pilot light...)
