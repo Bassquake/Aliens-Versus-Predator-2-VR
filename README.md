@@ -5,7 +5,7 @@ Should work on medium graphics cards from Nvidia 3060 and upwards.
 
 Short video of it in action on a Quest 2 here on [YouTube](https://youtu.be/4kNUM0h5kPE).
 
-[![Watch the video](https://i.ytimg.com/vi_webp/4kNUM0h5kPE/maxresdefault.webp)](https://youtu.be/4kNUM0h5kPE)
+![v0.2 Released](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/blob/main/captures/thumb_AvP2VR_v0-2.jpg)
 
 > [!CAUTION]
 > You need the original installation game files and updated to v1.0.9.6. The 2 disc CD version can be found on eBay or maybe archive.org. This build is in playable state. Some weapon models needs a bit of attention as they aren't designed to be looked at from different angles! I'm not primarily a programmer, this was done with a lot of help from various AI like Claude, Copilot and Gemini.
