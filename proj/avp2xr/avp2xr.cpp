@@ -187,7 +187,10 @@ static struct
 	// Bring the game's window to the front when it first appears (launched from SteamVR or a
 	// shortcut it can start behind others, so the keyboard doesn't reach it until alt-tab)
 	int focusWindow;
-} g_cfg = { 2.0f, 3.0f, 0.0f, 1.5f, 2.25f, 0.0f, 1, 0, 0.5f, 1.0f, 1, 1 };
+	// AdjustHandsLive: the Adjust binding (hand adjust mode in the game) is only bound when yes, so its
+	// inputs (by default left stick click + right B) otherwise just do their own actions
+	int adjustHandsLive;
+} g_cfg = { 2.0f, 3.0f, 0.0f, 1.5f, 2.25f, 0.0f, 1, 0, 0.5f, 1.0f, 1, 1, 0 };
 
 static float IniFloat(const wchar_t* ini, const wchar_t* key, float def)
 {
@@ -218,9 +221,13 @@ static void LoadSettings()
 	wchar_t eye[16];
 	GetPrivateProfileStringW(L"VR", L"MirrorEye", L"left", eye, 16, ini);
 	g_cfg.mirrorEye = !_wcsicmp(eye, L"right") ? 1 : !_wcsicmp(eye, L"both") ? 2 : 0;
-	Log("Settings: ScreenDistance=%.2f ScreenWidth=%.2f ScreenHeight=%.2f HudDistance=%.2f HudWidth=%.2f HudHeight=%.2f DesktopMirror=%d MirrorEye=%s PanelScale=%.2f MirrorFillScreen=%s FocusGameWindow=%s",
+	wchar_t adjust[16];
+	GetPrivateProfileStringW(L"VR", L"AdjustHandsLive", L"no", adjust, 16, ini);
+	g_cfg.adjustHandsLive = adjust[0] && !wcschr(L"nN0fF", adjust[0]);
+	Log("Settings: ScreenDistance=%.2f ScreenWidth=%.2f ScreenHeight=%.2f HudDistance=%.2f HudWidth=%.2f HudHeight=%.2f DesktopMirror=%d MirrorEye=%s PanelScale=%.2f MirrorFillScreen=%s FocusGameWindow=%s AdjustHandsLive=%s",
 		g_cfg.distance, g_cfg.width, g_cfg.height, g_cfg.hudDistance, g_cfg.hudWidth, g_cfg.hudHeight, g_cfg.desktopMirror,
-		g_cfg.mirrorEye == 1 ? "right" : g_cfg.mirrorEye == 2 ? "both" : "left", g_cfg.panelScale, g_cfg.mirrorFill ? "yes" : "no", g_cfg.focusWindow ? "yes" : "no");
+		g_cfg.mirrorEye == 1 ? "right" : g_cfg.mirrorEye == 2 ? "both" : "left", g_cfg.panelScale, g_cfg.mirrorFill ? "yes" : "no", g_cfg.focusWindow ? "yes" : "no",
+		g_cfg.adjustHandsLive ? "yes" : "no");
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -862,6 +869,7 @@ static struct ButtonAction
 	{ "medicomp", "Medicomp (Predator)", AVP2XR_BTN_MEDICOMP, L"Medicomp", { nullptr, nullptr, nullptr, nullptr, nullptr } },
 	{ "nextweapon", "Next weapon", AVP2XR_BTN_NEXTWEAPON, L"NextWeapon", { "right thumbstick up", "right thumbstick up", "right thumbstick up", "right trackpad up", nullptr } },
 	{ "prevweapon", "Previous weapon", AVP2XR_BTN_PREVWEAPON, L"PrevWeapon", { "right thumbstick down", "right thumbstick down", "right thumbstick down", "right trackpad down", nullptr } },
+	{ "adjust", "Hand adjust mode", AVP2XR_BTN_ADJUST, L"Adjust", { nullptr, nullptr, nullptr, nullptr, nullptr } },
 };
 // The sticks (vector actions): movement and snap turn / weapon cycling
 static const char* const g_moveDefaults[5] = { "left thumbstick", "left thumbstick", "left thumbstick", "left trackpad", nullptr };
@@ -953,6 +961,17 @@ static int g_numRawInputs[5];
 static int g_activeProfile = -1;  // g_profiles index of the controllers in use, -1 = not known yet
 static struct RawState { bool down, longOn; DWORD start; int pulse; } g_rawState[kMaxRawInputs];
 
+// Combos: a button written "<input> + <input>" (e.g. Adjust=left thumbstick + right b) is pressed
+// by holding both. Each of the two is read through an action of its own as well as being bound as
+// usual. Once both are down, the other actions on those two inputs are held back until both are let
+// go, so pressing the second doesn't also do its own thing (the first does, until the second is
+// pressed). Per controller type, like the long presses.
+static const int kMaxCombos = 4;
+static XrAction g_comboActions[kMaxCombos][2];
+static struct Combo { unsigned int bits, otherBits; char path[2][128]; } g_combos[5][kMaxCombos];
+static int g_numCombos[5];
+static bool g_comboOn[kMaxCombos];
+
 // Stick directions: a button written "<left|right> <thumbstick|trackpad> <up|down|left|right>" is
 // pressed by pushing that stick that way (past 0.6, and more that way than across; released below
 // 0.3). OpenXR has no such inputs, so the sticks are read through the actions below and the
@@ -1022,6 +1041,8 @@ static void SuggestBindings(const wchar_t* ini, int nProfile)
 				BindingText(ini, profile, all[i].key, all[i].def, all[i].text, sizeof(all[i].text), &custom);
 			else
 				strcpy_s(all[i].text, all[i].def ? all[i].def : "");
+			if (all[i].bit == AVP2XR_BTN_ADJUST && !g_cfg.adjustHandsLive)
+				all[i].text[0] = 0;  // AdjustHandsLive=no: hand adjust mode isn't bound
 			char part[320];
 			sprintf_s(part, "%s%S=%s", i ? ", " : "", all[i].key, all[i].text);
 			strcat_s(summary, part);
@@ -1035,6 +1056,12 @@ static void SuggestBindings(const wchar_t* ini, int nProfile)
 		StickDir dirs[kMaxStickDirs];
 		int numDirs = 0;
 		bool stickUsed[4] = { false, false, false, false };
+		Combo combos[kMaxCombos];
+		int numCombos = 0;
+		memset(combos, 0, sizeof(combos));
+		// The inputs bound straight to buttons, to find what a combo's inputs also do
+		struct { char path[128]; unsigned int bit; } direct[maxBindings];
+		int numDirect = 0;
 		for (int pass = 0; pass < 2 && ok; ++pass)
 		{
 			for (int i = 0; i < count && ok; ++i)
@@ -1051,6 +1078,34 @@ static void SuggestBindings(const wchar_t* ini, int nProfile)
 					bool isLong = !_strnicmp(item, "long ", 5);
 					if (isLong)
 						item += 5;
+					char* plus = strchr(item, '+');
+					if (plus)
+					{
+						*plus = 0;
+						char* second = plus + 1;
+						while (*second == ' ')
+							++second;
+						for (char* end = item + strlen(item); end > item && end[-1] == ' '; )
+							*--end = 0;
+						char paths[2][128];
+						if (isLong || all[i].stick || numCombos == kMaxCombos ||
+							!ExpandBinding(item, profile, false, paths[0], sizeof(paths[0])) ||
+							!ExpandBinding(second, profile, false, paths[1], sizeof(paths[1])))
+						{
+							Log("Input: [%S] can't use the combo \"%s%s + %s\"%s", profile.section, isLong ? "long " : "", item, second,
+								numCombos == kMaxCombos ? " (too many)" : "");
+							ok = false;
+							break;
+						}
+						if (pass == 1)
+						{
+							Combo& c = combos[numCombos++];
+							c.bits = all[i].bit;
+							strcpy_s(c.path[0], paths[0]);
+							strcpy_s(c.path[1], paths[1]);
+						}
+						continue;
+					}
 					int dirStick, dir;
 					if (!all[i].stick && ParseStickDir(item, &dirStick, &dir))
 					{
@@ -1108,8 +1163,34 @@ static void SuggestBindings(const wchar_t* ini, int nProfile)
 						break;
 					}
 					b[n++] = { all[i].action, xp };
+					if (!all[i].stick && numDirect < maxBindings)
+					{
+						strcpy_s(direct[numDirect].path, path);
+						direct[numDirect++].bit = all[i].bit;
+					}
 				}
 			}
+		}
+
+		// Each combo's inputs: read through its own actions, and what else they do (held back while
+		// the combo is on), bound straight or as long presses
+		for (int c = 0; c < numCombos && ok; ++c)
+		{
+			for (int h = 0; h < 2 && ok; ++h)
+			{
+				for (int d = 0; d < numDirect; ++d)
+					if (!strcmp(direct[d].path, combos[c].path[h]))
+						combos[c].otherBits |= direct[d].bit;
+				for (int k = 0; k < numShared; ++k)
+					if (!strcmp(shared[k], combos[c].path[h]))
+						combos[c].otherBits |= raw[k].shortBits | raw[k].longBits;
+				XrPath xp = Path(combos[c].path[h]);
+				if (xp == XR_NULL_PATH || n >= (uint32_t)maxBindings)
+					ok = false;
+				else
+					b[n++] = { g_comboActions[c][h], xp };
+			}
+			combos[c].otherBits &= ~combos[c].bits;
 		}
 		for (int k = 0; k < numShared && ok; ++k)
 		{
@@ -1146,6 +1227,8 @@ static void SuggestBindings(const wchar_t* ini, int nProfile)
 				memcpy(g_rawInputs[nProfile], raw, sizeof(raw));
 				g_numStickDirs[nProfile] = numDirs;
 				memcpy(g_stickDirs[nProfile], dirs, sizeof(dirs));
+				g_numCombos[nProfile] = numCombos;
+				memcpy(g_combos[nProfile], combos, sizeof(combos));
 				if (custom)
 					Log("Input: [%S] bindings from avp2xr.ini: %s", profile.section, summary);
 				return;
@@ -1154,6 +1237,7 @@ static void SuggestBindings(const wchar_t* ini, int nProfile)
 		}
 		g_numRawInputs[nProfile] = 0;
 		g_numStickDirs[nProfile] = 0;
+		g_numCombos[nProfile] = 0;
 		if (!useIni || !custom)
 			return;  // the defaults failed too (or there was nothing custom to fall back from)
 		Log("Input: using the default [%S] bindings instead", profile.section);
@@ -1178,6 +1262,7 @@ static void UpdateActiveProfile()
 				g_activeProfile = i;
 				memset(g_rawState, 0, sizeof(g_rawState));
 				memset(g_stickDirOn, 0, sizeof(g_stickDirOn));
+				memset(g_comboOn, 0, sizeof(g_comboOn));
 				return;
 			}
 		}
@@ -1242,6 +1327,17 @@ static void InitInput()
 		sprintf_s(aci.localizedActionName, "Long-press input %d", k + 1);
 		r = x_xrCreateAction(g_actionSet, &aci, &g_rawActions[k]);
 		if (XR_FAILED(r)) { Log("Input: creating the long-press actions failed: %s", XrStr(r)); return; }
+	}
+
+	for (int c = 0; c < kMaxCombos; ++c)
+	{
+		for (int h = 0; h < 2; ++h)
+		{
+			sprintf_s(aci.actionName, "combo%d_%d", c, h);
+			sprintf_s(aci.localizedActionName, "Combo %d input %d", c + 1, h + 1);
+			r = x_xrCreateAction(g_actionSet, &aci, &g_comboActions[c][h]);
+			if (XR_FAILED(r)) { Log("Input: creating the combo actions failed: %s", XrStr(r)); return; }
+		}
 	}
 
 	aci.actionType = XR_ACTION_TYPE_VECTOR2F_INPUT;
@@ -1397,6 +1493,32 @@ static void UpdateInput()
 		}
 	}
 
+	// Combos: on with both inputs down; their inputs' other actions are held back until both are up
+	if (g_activeProfile >= 0)
+	{
+		for (int c = 0; c < g_numCombos[g_activeProfile]; ++c)
+		{
+			const Combo& combo = g_combos[g_activeProfile][c];
+			bool down[2];
+			for (int h = 0; h < 2; ++h)
+			{
+				gi.action = g_comboActions[c][h];
+				XrActionStateBoolean bs = { XR_TYPE_ACTION_STATE_BOOLEAN };
+				down[h] = XR_SUCCEEDED(x_xrGetActionStateBoolean(g_session, &gi, &bs)) && bs.isActive && bs.currentState;
+			}
+			if (down[0] && down[1])
+				g_comboOn[c] = true;
+			else if (!down[0] && !down[1])
+				g_comboOn[c] = false;
+			if (g_comboOn[c])
+			{
+				g_input.buttons &= ~combo.otherBits;
+				if (down[0] && down[1])
+					g_input.buttons |= combo.bits;
+			}
+		}
+	}
+
 	XrSpaceLocation loc = { XR_TYPE_SPACE_LOCATION };
 	const XrSpaceLocationFlags needed = XR_SPACE_LOCATION_ORIENTATION_VALID_BIT | XR_SPACE_LOCATION_POSITION_VALID_BIT;
 	if (XR_SUCCEEDED(x_xrLocateSpace(g_aimSpace, g_space, g_frameState.predictedDisplayTime, &loc)) &&
@@ -1472,6 +1594,9 @@ static void ResetInput()
 	for (int k = 0; k < 4; ++k)
 		g_dirStickActions[k] = XR_NULL_HANDLE;
 	memset(g_stickDirOn, 0, sizeof(g_stickDirOn));
+	for (int c = 0; c < kMaxCombos; ++c)
+		g_comboActions[c][0] = g_comboActions[c][1] = XR_NULL_HANDLE;
+	memset(g_comboOn, 0, sizeof(g_comboOn));
 	g_activeProfile = -1;
 	memset(g_rawState, 0, sizeof(g_rawState));
 	g_inputReady = false;

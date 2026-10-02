@@ -73,13 +73,18 @@ class CMuzzleFlashFX : public CSpecialFX
 		// VR: puts the camera-relative (really-close) parts at vCamPos / rCamRot in the
 		// current camera's frame, and the light at vWorldPos. Nothing happens while hidden.
 		void PlaceInView(const LTVector &vCamPos, const LTRotation &rCamRot);
+
+		// VR: the particles as a normal (not really-close) object at vWorldPos, for a flash placed on
+		// a point of the model (BeginVRScale with bAtOrigin, its scale taking them to world size).
+		// The game makes them really-close again at its next update.
+		void PlaceParticlesInWorld(const LTVector &vWorldPos);
 		void PlaceLight(const LTVector &vWorldPos);
 
 		// VR: scales the model/sprite and the particles (their sizes and their spread from the
-		// flash's origin) by fScale until EndVRScale puts them back
-		void BeginVRScale(LTFLOAT fScale);
+		// flash's origin) by fScale until EndVRScale puts them back. bAtOrigin puts the particles
+		// right at the origin instead (a flash placed on a point of the model, not ahead of a muzzle).
+		void BeginVRScale(LTFLOAT fScale, LTBOOL bAtOrigin = LTFALSE);
 		void EndVRScale();
-
 	private :
 
         LTBOOL   Reset(MUZZLEFLASHCREATESTRUCT & cs);

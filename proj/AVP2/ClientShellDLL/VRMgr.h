@@ -111,6 +111,9 @@ class VRMgr
 		// World-space horizontal direction to move in, from the left stick relative to where
 		// the head faces. Its length (0 to 1) is how far the stick is pushed.
 		LTBOOL		GetMoveDirection(LTVector &vDir) const;
+
+		// LTTRUE while adjust mode has the controllers (the sticks and buttons aren't the game's)
+		LTBOOL		IsAdjusting() const					{ return m_bAdjusting; }
 		// The left stick as it's pushed (past the dead zone, 0-1 each way): right and forward
 		LTBOOL		GetMoveStick(LTFLOAT &fRight, LTFLOAT &fForward) const;
 
@@ -176,6 +179,20 @@ class VRMgr
 		void		PressKey(int nKey);
 		void		UpdateCutsceneSkip();
 
+		// Each weapon's fit in the hands ([Gun] and [LeftHand]): read at each change of weapon, from
+		// %LOCALAPPDATA%\avp2xr\hands.ini (what adjust mode saves) before avp2xr.ini
+		void		ReadGunFit(const char *szWeapon);
+		void		ReadLeftFit(const char *szWeapon);
+		void		ApplyGunFit();
+		void		ApplyLeftFit();
+		LTBOOL		ReadFitLine(const char *szSection, const char *szWeapon, char *szValue, int nSize, const char **pszFrom);
+
+		// Adjust mode (the Adjust button): the sticks fit the current weapon in the right or left
+		// hand while the game gets no controller input; Adjust again saves it to hands.ini
+		void		UpdateAdjust(unsigned int nRaw, unsigned int nPressed);
+		void		EndAdjust();
+		void		ShowAdjust(LTBOOL bNow);
+
 		const Avp2XrApi	*m_pApi;
 		uint32			m_nNextLookupTime;
 		Avp2XrView		m_Views[2];
@@ -224,6 +241,26 @@ class VRMgr
 		LTRotation		m_rGunAngle;			// avp2xr.ini GunPitch/GunYaw/GunRoll, in the controller's frame
 		LTRotation		m_rGunAngleCur;			// ...for the weapon in hand ([Gun] <weapon>, else m_rGunAngle)
 		LTVector		m_vGunOffsetCur;		// its offset (world units: right, up, forward), else VRGunOffset
+		// The fits as numbers: forward up right (cm), pitch yaw roll (degrees). The defaults from [VR]
+		// (Gun*, LeftHand*), and the weapon in hand's (m_vGunOffsetCur and the rest are made from these)
+		LTFLOAT			m_fGunDefault[6];
+		LTFLOAT			m_fLeftDefault[6];
+		LTFLOAT			m_fGunFit[6];
+		LTFLOAT			m_fLeftFit[6];
+		LTFLOAT			m_fMuzzleFit[6];		// [Muzzle] <weapon> = forward up right [pitch yaw roll] (cm, degrees, the
+												// gun's frame): moves where shots, the flash and the flame start from, and
+												// turns the flash (its sprites and particles; the shots keep to the aim)
+		LTRotation		m_rMuzzleRot;			// the flash's turn in the world (the model's, then the [Muzzle] angle)
+		char			m_szHandsIni[MAX_PATH];	// %LOCALAPPDATA%\avp2xr\hands.ini
+		LTBOOL			m_bAdjusting;			// adjust mode is on
+		LTBOOL			m_bAdjustLive;			// avp2xr.ini AdjustHandsLive: the Adjust button turns it on
+		int				m_nAdjustHand;			// 0 = right ([Gun]), 1 = left ([LeftHand]), 2 = the muzzle ([Muzzle])
+		LTBOOL			m_bAdjustMove;			// the sticks move the hand (else turn it)
+		LTFLOAT			m_fAdjustStart[3][6];	// the fits when adjust mode began, for Undo
+		LTBOOL			m_bAdjustChanged[3];	// ...and whether they've changed since
+		uint32			m_nAdjustShowTime;		// GetTickCount() the values were last shown
+		struct WEAPON	*m_pAdjustWeapon;		// the weapon being fitted
+		unsigned int	m_nAdjustRaw;			// AVP2XR_BTN_* held last frame, before adjust mode takes them
 		LTBOOL			m_bCrosshairHit;		// m_vCrosshairPos is set for this frame
 		LTVector		m_vCrosshairPos;		// where the aim hits, in the world
 		LTBOOL			m_bCrosshairEye[2];		// the crosshair is in front of that eye
@@ -256,7 +293,9 @@ class VRMgr
 		LTVector		m_vAimPos;				// aiming controller pose in the world
 		LTBOOL			m_bGripWorld;			// m_vGripPos is set for this frame
 		LTVector		m_vGripPos;				// the aiming controller's grip pose (palm) in the world
-		LTRotation		m_rAimRot;
+		LTRotation		m_rAimRot;				// how the weapon model is turned: the aim pose and the [Gun] angle
+		LTRotation		m_rShotRot;				// where it aims (shots, crosshair, flame): the aim pose alone, so
+												// the [Gun] angle only turns the model; hand to hand when two-handed
 		LTBOOL			m_bWeaponMoved;
 		LTVector		m_vWeaponPos;			// the weapon's own (view-relative) placement, to restore
 		LTRotation		m_rWeaponRot;
@@ -266,6 +305,10 @@ class VRMgr
 		LTVector		m_vWeaponOrigin;		// where the model's origin goes in the world at full size
 		LTFLOAT			m_fWeaponScale;			// VRGunScale this frame
 		LTVector		m_vMuzzlePos;			// the weapon's muzzle in the world at full size
+		HMODELNODE		m_hMuzzleNode;			// a node used as the muzzle (s_MuzzleNodes), INVALID_MODEL_NODE = none
+		HMODELSOCKET	m_hFlashSocket;			// a socket the muzzle flash goes on instead (s_MuzzleNodes)
+		LTBOOL			m_bFlashSocket;			// ...found this frame, at:
+		LTVector		m_vFlashSocket;			// its place in model space
 		LTVector		m_vShotPos;				// where shots start: the muzzle, or the controller for melee
 		LTFLOAT			m_fExtraFOVX;			// the game's view-model FOV offsets, to restore
 		LTFLOAT			m_fExtraFOVY;

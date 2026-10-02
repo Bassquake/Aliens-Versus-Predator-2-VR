@@ -75,6 +75,12 @@ Stereo (option 2)
   nothing usable straight ahead it takes the nearest usable thing within avp2xr.ini UseAngle degrees (default
   10), found with rays in rings round the look direction; that ray is what's sent to the server, which casts
   it again as in the game. The activate crosshair uses the same search.
+  Adjust mode (avp2xr.ini AdjustHandsLive=yes, default no; AVP2XR_BTN_ADJUST, Touch/Index: left stick
+  click + right B, a combo binding, which the proxy only binds with AdjustHandsLive=yes): fits the weapon in hand to the right or left
+  hand with the sticks (VRMgr::UpdateAdjust; the controls are in avp2xr.ini above [Gun]). The game gets no
+  controller input meanwhile. Saved to %LOCALAPPDATA%\avp2xr\hands.ini (not avp2xr.ini: the game can't
+  write to Program Files, Windows would put the copy in VirtualStore), which is read before avp2xr.ini's
+  [Gun]/[LeftHand].
   Recenter: hold the Meta/system button (the runtime recenters; the proxy passes the LOCAL space change on as
   Avp2XrInput::recenterCount and the game re-anchors: view faces the aim, eyes back at the camera height).
   Tests: test\stereotest.cpp (proxy stereo API), test\convtest.cpp (OpenXR -> LithTech pose conversion).

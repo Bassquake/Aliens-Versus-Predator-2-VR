@@ -497,7 +497,7 @@ void CPVFXMgr::Update()
 //
 // ----------------------------------------------------------------------- //
 
-void CPVFXMgr::PlaceForView(const LTVector &vEyePos, const LTRotation &rEyeRot, LTFLOAT fScale)
+void CPVFXMgr::PlaceForView(const LTVector &vEyePos, const LTRotation &rEyeRot, LTFLOAT fScale, const LTVector *pAtView)
 {
 	if (!m_hModelObject) return;
 
@@ -513,6 +513,8 @@ void CPVFXMgr::PlaceForView(const LTVector &vEyePos, const LTRotation &rEyeRot, 
 		if (!hFX || g_pModelLT->GetSocketTransform(m_hModelObject, m_ScaleFX[i].hSocket, transform, LTTRUE) != LT_OK) continue;
 
 		g_pTransLT->Get(transform, vPos, rRot);
+		if (pAtView)
+			vPos = *pAtView;
 		g_pLTClient->SetObjectPos(hFX, &vPos, LTTRUE);
 		g_pLTClient->SetObjectRotation(hFX, &rRot);
 	}
@@ -528,6 +530,8 @@ void CPVFXMgr::PlaceForView(const LTVector &vEyePos, const LTRotation &rEyeRot, 
 		if (!hFX || g_pModelLT->GetSocketTransform(m_hModelObject, m_DLightFX[i].hSocket, transform, LTTRUE) != LT_OK) continue;
 
 		g_pTransLT->Get(transform, vPos, rRot);
+		if (pAtView)
+			vPos = *pAtView;
 		vPos = vEyePos + (vR * vPos.x + vU * vPos.y + vF * vPos.z) * fScale;
 		g_pLTClient->SetObjectPos(hFX, &vPos, LTTRUE);
 	}

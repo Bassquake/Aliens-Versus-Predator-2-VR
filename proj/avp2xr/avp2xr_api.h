@@ -41,6 +41,8 @@
 #define AVP2XR_BTN_MEDICOMP		0x400000	// Predator medicomp: the G key (unbound unless avp2xr.ini binds it)
 #define AVP2XR_BTN_NEXTWEAPON	0x800000	// next weapon, like right stick up (unbound unless avp2xr.ini binds it)
 #define AVP2XR_BTN_PREVWEAPON	0x1000000	// previous weapon, like right stick down (unbound unless bound)
+#define AVP2XR_BTN_ADJUST		0x2000000	// hand adjust mode on/off: fit the weapon in each hand with the sticks
+										// (unbound unless avp2xr.ini binds it)
 
 // SubmitStereo hudFlags
 #define AVP2XR_HUD_FOLLOWS		1	// a HUD-only image follows with the next flip; it is shown

@@ -70,8 +70,10 @@ class CPVFXMgr
 
 		// VR: after the (really-close) model has been placed in the current eye's view, puts the
 		// scale fx at its sockets again, and the lights at the sockets' place in the world
-		// (vEyePos/rEyeRot: the eye camera; fScale: how much bigger the model is drawn).
-		void	PlaceForView(const LTVector &vEyePos, const LTRotation &rEyeRot, LTFLOAT fScale);
+		// (vEyePos/rEyeRot: the eye camera; fScale: how much bigger the model is drawn). With
+		// pAtView, all of them go there instead (in the eye's view, where a really-close model's
+		// point would be), for a weapon whose fx belong somewhere other than its sockets in VR.
+		void	PlaceForView(const LTVector &vEyePos, const LTRotation &rEyeRot, LTFLOAT fScale, const LTVector *pAtView = LTNULL);
 
 		void	SetVisible(LTBOOL bVis = LTTRUE);
 

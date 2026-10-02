@@ -36,6 +36,12 @@ static VarTrack		g_vtVRGunOffsetZ;
 static VarTrack		g_vtVRGripX;
 static VarTrack		g_vtVRGripY;
 static VarTrack		g_vtVRGripZ;
+static VarTrack		g_vtVRFlashWorld;	// a flash on a socket (s_MuzzleNodes): 1 = its particles as a world object
+static VarTrack		g_vtVRFlashOut;		// ...drawn this many cm towards the eye from the socket
+static VarTrack		g_vtVRFlashSize;	// ...its size, times the game's
+static VarTrack		g_vtVRFlashRight;	// ...moved from the socket (cm, the gauntlet's right, up and forward)
+static VarTrack		g_vtVRFlashUp;
+static VarTrack		g_vtVRFlashForward;
 
 // Human characters are about 100 units tall (DefaultDims half-height ~50-55), so a
 // 1.8 m person gives roughly 55 units per metre.
@@ -165,6 +171,9 @@ static const char **s_pszLeftHandNodes[4] = { s_szLeftWristNodes, s_szLeftKnuckl
 // First-person models whose left arm is in pieces of its own (and no other piece uses its nodes),
 // from the model files (tools: jobs abcpieces/leftpieces): the model, its left-arm pieces and its
 // other pieces. These draw the arm as a second copy of the model at the left controller.
+// The Predator's left wrist gauntlet is part of the arm too: its doors (door1/door2) and symbols are
+// on nodes of their own off the model's root, not the arm's, but belong with the left hand
+// (tools/armpieces.py lists a model's pieces and nodes).
 struct ArmPieces
 {
 	const char	*szModel;
@@ -182,10 +191,10 @@ static const ArmPieces s_ArmPieces[] =
 	{ "mrailgun_pv.abc", "thumb1_zTex1", "square1_39 scope3_zTex2" },
 	{ "mshotgun_pv.abc", "mainarm1_zTex1", "Shotgun1" },
 	{ "msmartgun_pv.abc", "mainarm1_zTex1", "bmerge1_2" },
-	{ "phackingdevice_pv.abc", "ll_arm_zTex0 l_hand_zTex0 l_thumb_zTex0 symbols_zTex3", "door1_zTex0 door2_zTex0 r_hand_zTex1 r_thumb_zTex1 rl_arm_zTex1" },
-	{ "photbomb_pv.abc", "ll_arm l_hand l_thumb", "door1 door2 r_thumb rl_arm r_hand Bomb symbols" },
-	{ "pmedicomp_pv.abc", "ll_arm_zTex0 l_hand_zTex0 l_thumb_zTex0 symbols_zTex4", "door1_zTex0 door2_zTex0 r_hand_zTex1 r_thumb_zTex1 rl_arm_zTex1 display_zTex3 medicomp2_zTex2 medicomp1_zTex2 medicomp3_zTex2 medicomp4_zTex2 medicomp4_zTex3 medicomp3_zTex5" },
-	{ "pshouldercannon_pv.abc", "ll_arm_zTex0 l_hand_zTex0 l_thumb_zTex0 symbols_zTex3", "door1_zTex0 door2_zTex0 r_hand_zTex1 r_thumb_zTex1 rl_arm_zTex1" },
+	{ "phackingdevice_pv.abc", "ll_arm_zTex0 l_hand_zTex0 l_thumb_zTex0 symbols_zTex3 door1_zTex0 door2_zTex0", "r_hand_zTex1 r_thumb_zTex1 rl_arm_zTex1" },
+	{ "photbomb_pv.abc", "ll_arm l_hand l_thumb door1 door2 symbols", "r_thumb rl_arm r_hand Bomb" },
+	{ "pmedicomp_pv.abc", "ll_arm_zTex0 l_hand_zTex0 l_thumb_zTex0 symbols_zTex4 door1_zTex0 door2_zTex0", "r_hand_zTex1 r_thumb_zTex1 rl_arm_zTex1 display_zTex3 medicomp2_zTex2 medicomp1_zTex2 medicomp3_zTex2 medicomp4_zTex2 medicomp4_zTex3 medicomp3_zTex5" },
+	{ "pshouldercannon_pv.abc", "ll_arm_zTex0 l_hand_zTex0 l_thumb_zTex0 symbols_zTex3 door1_zTex0 door2_zTex0", "r_hand_zTex1 r_thumb_zTex1 rl_arm_zTex1" },
 	{ "pspear_pv.abc", "ll_arm_zTex0", "rl_arm_zTex1 spear2_zTex3" },
 	{ "mflamer_pv.abc", "thumb1_zTex1_left", "cube4 thumb1_zTex1" },
 	{ "mgrenade_pv.abc", "sillyinder_zTex2_left", "cube4_zTex0 sillyinder_zTex2 Canister_zTex2 projectile3 projectile4 projectile5 projectile0 projectile1 projectile2" },
@@ -193,12 +202,13 @@ static const ArmPieces s_ArmPieces[] =
 	{ "mpistol_pv.abc", "thumb1_zTex1_left", "cube6 thumb1_zTex1" },
 	{ "msadar_pv.abc", "thumb_zTex1_left", "cyl30_zTex0 thumb_zTex1" },
 	{ "mpulserifle_pv.abc", "thumb_left", "Pulse_Rifle_3d thumb" },
-	{ "pspeargun_pv.abc", "ll_arm_zTex0_left", "ll_arm_zTex0 rl_arm_zTex1 Stitch4_zTex3" },
-	{ "pdisc_pv.abc", "ll_arm_zTex0_left", "ll_arm_zTex0 rl_arm_zTex1 cyl2_zTex3" },
-	{ "pnetgun_pv.abc", "ll_arm_zTex0_left", "ll_arm_zTex0 r_thumb_zTex1 Stitch3_zTex3" },
-	{ "penergysift_pv.abc", "ll_arm_zTex0_left", "ll_arm_zTex0 r_thumb_zTex1 sphere4_zTex3" },
+	// (ll_arm_zTex0 is what's left of the arm's piece after splitting: the gauntlet's doors)
+	{ "pspeargun_pv.abc", "ll_arm_zTex0_left ll_arm_zTex0", "rl_arm_zTex1 Stitch4_zTex3" },
+	{ "pdisc_pv.abc", "ll_arm_zTex0_left ll_arm_zTex0", "rl_arm_zTex1 cyl2_zTex3" },
+	{ "pnetgun_pv.abc", "ll_arm_zTex0_left ll_arm_zTex0", "r_thumb_zTex1 Stitch3_zTex3" },
+	{ "penergysift_pv.abc", "ll_arm_zTex0_left ll_arm_zTex0", "r_thumb_zTex1 sphere4_zTex3" },
 	// the Marine and Predator ones above with "_left" pieces are split by tools/splitarms.py (the copies in vrrez)
-	{ "pwristblades_pv.abc", "ll_arm_zTex0 l_hand_zTex0 l_thumb_zTex0", "door1_zTex0 door2_zTex0 rl_arm_zTex1 r_hand_zTex1 r_thumb_zTex1 blade2_zTex1 blade1_zTex1" },
+	{ "pwristblades_pv.abc", "ll_arm_zTex0 l_hand_zTex0 l_thumb_zTex0 door1_zTex0 door2_zTex0", "rl_arm_zTex1 r_hand_zTex1 r_thumb_zTex1 blade2_zTex1 blade1_zTex1" },
 };
 
 // The space-separated names in szList, into aNames; returns how many
@@ -231,6 +241,29 @@ static const char *s_szPinkyNodes[] = { "Pinky_r1", "_zN_Pinky_r1", "r_pinky1", 
 // while the pulse rifle's Flash socket is 0.27 of the way there and the pistol's barrel end
 // 0.24 (from their models and Pos offsets).
 static const char *s_szMuzzleSockets[] = { "Flash", "Muzzle", "Socket0" };
+
+// Models whose effect point is a node instead (in place of the muzzle socket, for the shots, the
+// muzzle flash and the player-view fx on the model's sockets). The Predator hacking device's spark
+// is on a socket on its wrist gauntlet's door, where the right forefinger touches it in the
+// animation; in VR the gauntlet is on the left controller, so it goes on the fingertip instead.
+// szFlashSocket: the muzzle flash (its sprites and particles: the hacking device's lightning) goes on
+// this socket instead, where the left-arm copy draws it (on the gauntlet at the left controller),
+// right at it (the flash's particles are otherwise drawn ahead of it, which in VR is ahead of the
+// view, not the hand).
+struct MuzzleNode
+{
+	const char	*szModel;
+	const char	*szNode;
+	const char	*szFlashSocket;
+};
+#define VR_FLASH_SOCKET_OUT_CM	4.0f	// a flash on a socket is drawn this far towards the eye from it
+#define VR_FLASH_SOCKET_SIZE	0.6f	// ...this size (times the game's)
+#define VR_FLASH_SOCKET_RIGHT_CM	2.0f	// ...and moved this far from it (the hacking device's lightning:
+#define VR_FLASH_SOCKET_UP_CM		2.0f	// to the top right of the gauntlet)
+static const MuzzleNode s_MuzzleNodes[] =
+{
+	{ "phackingdevice_pv.abc", "r_pointer4", "Flash" },
+};
 #define VR_DEFAULT_FLASH_DEPTH	0.24f
 
 // The flash is sized for the game's flash position, so moved in to the muzzle it's shrunk by
@@ -477,8 +510,29 @@ VRMgr::VRMgr()
 	m_bLastFramePlayerView = LTFALSE;
 	m_rHeadWorld.Init();
 	m_vHeadPos.Init();
+	m_rShotRot.Init();
+	m_hMuzzleNode = INVALID_MODEL_NODE;
+	m_hFlashSocket = INVALID_MODEL_SOCKET;
+	m_bFlashSocket = LTFALSE;
+	m_vFlashSocket.Init();
+	m_rMuzzleRot.Init();
 	m_vHeadWorld.Init();
 	m_fUseAngle = VR_DEFAULT_USE_ANGLE;
+	memset(m_fGunDefault, 0, sizeof(m_fGunDefault));
+	memset(m_fLeftDefault, 0, sizeof(m_fLeftDefault));
+	memset(m_fGunFit, 0, sizeof(m_fGunFit));
+	memset(m_fLeftFit, 0, sizeof(m_fLeftFit));
+	memset(m_fMuzzleFit, 0, sizeof(m_fMuzzleFit));
+	m_szHandsIni[0] = 0;
+	m_bAdjusting = LTFALSE;
+	m_bAdjustLive = LTFALSE;
+	m_nAdjustHand = 0;
+	m_bAdjustMove = LTFALSE;
+	memset(m_fAdjustStart, 0, sizeof(m_fAdjustStart));
+	m_bAdjustChanged[0] = m_bAdjustChanged[1] = m_bAdjustChanged[2] = LTFALSE;
+	m_nAdjustShowTime = 0;
+	m_pAdjustWeapon = LTNULL;
+	m_nAdjustRaw = 0;
 	m_bWeaponMoved = LTFALSE;
 	m_bWeaponView = LTFALSE;
 	memset(m_Prof, 0, sizeof(m_Prof));
@@ -572,6 +626,12 @@ void VRMgr::Init()
 	g_vtVRGripX.Init(g_pLTClient, "VRGripX", LTNULL, VR_DEFAULT_GRIP_X);
 	g_vtVRGripY.Init(g_pLTClient, "VRGripY", LTNULL, VR_DEFAULT_GRIP_Y);
 	g_vtVRGripZ.Init(g_pLTClient, "VRGripZ", LTNULL, VR_DEFAULT_GRIP_Z);
+	g_vtVRFlashWorld.Init(g_pLTClient, "VRFlashWorld", LTNULL, 1.0f);
+	g_vtVRFlashOut.Init(g_pLTClient, "VRFlashOut", LTNULL, VR_FLASH_SOCKET_OUT_CM);
+	g_vtVRFlashSize.Init(g_pLTClient, "VRFlashSize", LTNULL, VR_FLASH_SOCKET_SIZE);
+	g_vtVRFlashRight.Init(g_pLTClient, "VRFlashRight", LTNULL, VR_FLASH_SOCKET_RIGHT_CM);
+	g_vtVRFlashUp.Init(g_pLTClient, "VRFlashUp", LTNULL, VR_FLASH_SOCKET_UP_CM);
+	g_vtVRFlashForward.Init(g_pLTClient, "VRFlashForward", LTNULL, 0.0f);
 }
 
 // ----------------------------------------------------------------------- //
@@ -648,6 +708,9 @@ LTBOOL VRMgr::FindApi()
 				if(m_fUseAngle < 0.0f) m_fUseAngle = 0.0f;
 				if(m_fUseAngle > VR_MAX_USE_ANGLE) m_fUseAngle = VR_MAX_USE_ANGLE;
 				VRLog("Settings: UseAngle=%.1f", m_fUseAngle);
+				GetPrivateProfileStringA("VR", "AdjustHandsLive", "no", szValue, sizeof(szValue), szIni);
+				m_bAdjustLive = szValue[0] && !strchr("nN0fF", szValue[0]);
+				VRLog("Settings: AdjustHandsLive=%s", m_bAdjustLive ? "yes" : "no");
 
 				// The logo videos at startup: the game's own NoMovies switch (checked before each video,
 				// which starts after the splash screen, so this is set in time)
@@ -696,8 +759,8 @@ LTBOOL VRMgr::FindApi()
 					fOffset[k] = (LTFLOAT)atof(szValue);
 					pVars[k]->SetFloat(fOffset[k] * fUnitsPerCm);
 				}
-				// ...and its angle (degrees): the aim itself turns, so the gun, the shots and the
-				// crosshair stay together
+				// ...and its angle (degrees): it turns the gun in the hand only; the shots and the
+				// crosshair keep to the controller's aim (m_rShotRot)
 				LTFLOAT fAngle[3];
 				const char *szAngleKeys[3] = { "GunPitch", "GunYaw", "GunRoll" };
 				for(int a = 0; a < 3; a++)
@@ -732,6 +795,18 @@ LTBOOL VRMgr::FindApi()
 				}
 				m_vLeftOffset = LTVector(fLeft[0], fLeft[1], fLeft[2]) * fUnitsPerCm;
 				m_rLeftAngle = GunAngleRotation(fLeftAngle[0], fLeftAngle[1], fLeftAngle[2]);
+
+				// The same as numbers (forward up right, pitch yaw roll), for adjust mode
+				LTFLOAT fGunDefault[6] = { fOffset[2], fOffset[1], fOffset[0], fAngle[0], fAngle[1], fAngle[2] };
+				LTFLOAT fLeftDefault[6] = { fLeft[2], fLeft[1], fLeft[0], fLeftAngle[0], fLeftAngle[1], fLeftAngle[2] };
+				memcpy(m_fGunDefault, fGunDefault, sizeof(m_fGunDefault));
+				memcpy(m_fLeftDefault, fLeftDefault, sizeof(m_fLeftDefault));
+				memcpy(m_fGunFit, fGunDefault, sizeof(m_fGunFit));
+				memcpy(m_fLeftFit, fLeftDefault, sizeof(m_fLeftFit));
+				if(GetEnvironmentVariableA("LOCALAPPDATA", m_szHandsIni, MAX_PATH))
+					strcat(m_szHandsIni, "\\avp2xr\\hands.ini");
+				else
+					m_szHandsIni[0] = 0;
 				GetPrivateProfileStringA("VR", "TwoHandedHandDown", "6", szValue, sizeof(szValue), szIni);
 				m_fTwoHandDown = (LTFLOAT)atof(szValue) * fUnitsPerCm;
 				GetPrivateProfileStringA("VR", "LeftArmForcePose", "yes", szValue, sizeof(szValue), szIni);
@@ -1026,6 +1101,14 @@ void VRMgr::UpdateButtons()
 	// Everything counts as released once controller input stops (menus, flat screen). Buttons
 	// held when the menus closed count once they've been let go.
 	unsigned int nNow = m_bLastFrameInput ? m_Input.buttons : 0;
+
+	// Adjust mode takes the controllers: the game sees nothing held (so held buttons are let go)
+	unsigned int nRawPressed = nNow & ~m_nAdjustRaw;
+	m_nAdjustRaw = nNow;
+	UpdateAdjust(nNow, nRawPressed);
+	if(m_bAdjusting)
+		nNow = (m_nAdjustHand == 2) ? (nNow & AVP2XR_BTN_FIRE) : 0;	// fitting the muzzle, fire to see it
+
 	m_nIgnoreButtons &= nNow;
 	nNow &= ~m_nIgnoreButtons;
 	unsigned int nChanged = nNow ^ m_nButtons;
@@ -1124,6 +1207,329 @@ void VRMgr::UpdateButtons()
 }
 
 // ----------------------------------------------------------------------- //
+// Each weapon's fit in the hands. [Gun] <weapon> = forward up right [pitch yaw roll] and
+// [LeftHand] <weapon> = pitch yaw roll [forward up right] (cm, degrees), in place of the Gun* and
+// LeftHand* settings. hands.ini (written by adjust mode) comes before avp2xr.ini, so a weapon
+// fitted in the headset keeps that fit; delete its line there to go back to avp2xr.ini's.
+
+LTBOOL VRMgr::ReadFitLine(const char *szSection, const char *szWeapon, char *szValue, int nSize, const char **pszFrom)
+{
+	szValue[0] = 0;
+	*pszFrom = "";
+	if(!szWeapon[0])
+		return LTFALSE;
+	if(m_szHandsIni[0])
+		GetPrivateProfileStringA(szSection, szWeapon, "", szValue, nSize, m_szHandsIni);
+	if(szValue[0])
+	{
+		*pszFrom = "hands.ini";
+		return LTTRUE;
+	}
+	if(m_szIni[0])
+		GetPrivateProfileStringA(szSection, szWeapon, "", szValue, nSize, m_szIni);
+	*pszFrom = "avp2xr.ini";
+	return szValue[0] != 0;
+}
+
+void VRMgr::ReadGunFit(const char *szWeapon)
+{
+	// Fitting the last weapon ends (and is saved) when it's put away
+	if(m_bAdjusting)
+		EndAdjust();
+
+	LTFLOAT fUnitsPerCm = g_vtVRWorldScale.GetFloat() / 100.0f;
+	if(fUnitsPerCm <= 0.0f)
+		fUnitsPerCm = 1.0f;
+	m_fGunFit[0] = g_vtVRGunOffsetZ.GetFloat() / fUnitsPerCm;
+	m_fGunFit[1] = g_vtVRGunOffsetY.GetFloat() / fUnitsPerCm;
+	m_fGunFit[2] = g_vtVRGunOffsetX.GetFloat() / fUnitsPerCm;
+	for(int a = 3; a < 6; a++)
+		m_fGunFit[a] = m_fGunDefault[a];
+
+	char szValue[128];
+	const char *szFrom;
+	float f[6] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+	int nValues = 0;
+	if(ReadFitLine("Gun", szWeapon, szValue, sizeof(szValue), &szFrom))
+		nValues = sscanf(szValue, "%f %f %f %f %f %f", &f[0], &f[1], &f[2], &f[3], &f[4], &f[5]);
+	if(nValues >= 1)
+	{
+		for(int o = 0; o < 3; o++)
+			m_fGunFit[o] = f[o];
+	}
+	if(nValues >= 4)
+	{
+		for(int a = 3; a < 6; a++)
+			m_fGunFit[a] = f[a];
+	}
+	ApplyGunFit();
+	VRLog("Gun for %s: [Gun] %s=%s%s%s", szWeapon[0] ? szWeapon : "?", szWeapon[0] ? szWeapon : "?",
+		nValues >= 1 ? szValue : "(not set: the Gun* settings)", nValues >= 1 ? " from " : "", nValues >= 1 ? szFrom : "");
+
+	// [Muzzle] <weapon> = forward up right: where its shots start, moved from the muzzle found in the
+	// model (models without a muzzle socket only have the game's flash position to go by)
+	memset(m_fMuzzleFit, 0, sizeof(m_fMuzzleFit));
+	if(ReadFitLine("Muzzle", szWeapon, szValue, sizeof(szValue), &szFrom))
+	{
+		float m[6] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+		sscanf(szValue, "%f %f %f %f %f %f", &m[0], &m[1], &m[2], &m[3], &m[4], &m[5]);
+		for(int k = 0; k < 6; k++)
+			m_fMuzzleFit[k] = m[k];
+		VRLog("Muzzle for %s: [Muzzle] %s=%s from %s", szWeapon, szWeapon, szValue, szFrom);
+	}
+}
+
+void VRMgr::ReadLeftFit(const char *szWeapon)
+{
+	for(int k = 0; k < 6; k++)
+		m_fLeftFit[k] = m_fLeftDefault[k];
+
+	char szValue[128];
+	const char *szFrom;
+	float f[6] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+	int nValues = 0;
+	if(ReadFitLine("LeftHand", szWeapon, szValue, sizeof(szValue), &szFrom))
+		nValues = sscanf(szValue, "%f %f %f %f %f %f", &f[0], &f[1], &f[2], &f[3], &f[4], &f[5]);
+	if(nValues >= 3)
+	{
+		for(int a = 0; a < 3; a++)
+			m_fLeftFit[3 + a] = f[a];
+	}
+	if(nValues >= 6)
+	{
+		for(int o = 0; o < 3; o++)
+			m_fLeftFit[o] = f[3 + o];
+	}
+	ApplyLeftFit();
+	VRLog("Left hand for %s: [LeftHand] %s=%s%s%s", szWeapon[0] ? szWeapon : "?", szWeapon[0] ? szWeapon : "?",
+		nValues >= 3 ? szValue : "(not set: the LeftHand* settings)", nValues >= 3 ? " from " : "", nValues >= 3 ? szFrom : "");
+}
+
+void VRMgr::ApplyGunFit()
+{
+	LTFLOAT fUnitsPerCm = g_vtVRWorldScale.GetFloat() / 100.0f;
+	m_vGunOffsetCur = LTVector(m_fGunFit[2], m_fGunFit[1], m_fGunFit[0]) * fUnitsPerCm;
+	m_rGunAngleCur = GunAngleRotation(m_fGunFit[3], m_fGunFit[4], m_fGunFit[5]);
+}
+
+void VRMgr::ApplyLeftFit()
+{
+	LTFLOAT fUnitsPerCm = g_vtVRWorldScale.GetFloat() / 100.0f;
+	m_vArmOffset = LTVector(m_fLeftFit[2], m_fLeftFit[1], m_fLeftFit[0]) * fUnitsPerCm;
+	m_rArmAngle = GunAngleRotation(m_fLeftFit[3], m_fLeftFit[4], m_fLeftFit[5]);
+}
+
+// ----------------------------------------------------------------------- //
+// Adjust mode. The Adjust button (avp2xr.ini, e.g. Adjust=long left menu) turns it on in play; the
+// game then gets no controller input, and for the weapon in hand:
+//   left stick  up/down = pitch, left/right = yaw; right stick left/right = roll
+//   (moving instead: left stick up/down = forward/back, left/right = right/left; right stick
+//    up/down = up/down)
+//   Use = next: right hand, left hand, muzzle ([Muzzle]: where the shots start and how the flash
+//         is turned; the trigger still fires, to see it), Jump = turning / moving, Vision = undo
+//         its changes
+//   Adjust again (or leaving play, or changing weapon) = done: changes are saved to hands.ini
+// The current values are shown as game messages.
+
+// Degrees and cm per second at full push (it's slower near the centre, for fine changes)
+#define VR_ADJUST_DEGREES_PER_SEC	30.0f
+#define VR_ADJUST_CM_PER_SEC		6.0f
+
+static LTFLOAT AdjustStick(LTFLOAT v)
+{
+	LTFLOAT a = (LTFLOAT)fabs(v);
+	if(a < VR_STICK_DEADZONE)
+		return 0.0f;
+	a = (a - VR_STICK_DEADZONE) / (1.0f - VR_STICK_DEADZONE);
+	if(a > 1.0f)
+		a = 1.0f;
+	return (v > 0.0f) ? a * a : -a * a;
+}
+
+void VRMgr::UpdateAdjust(unsigned int nRaw, unsigned int nPressed)
+{
+	LTBOOL bPlaying = m_bLastFrameInput && g_pGameClientShell->GetInterfaceMgr()->GetGameState() == GS_PLAYING;
+	CWeaponModel *pWeaponModel = g_pGameClientShell->GetWeaponModel();
+	WEAPON *pWeapon = pWeaponModel ? pWeaponModel->GetWeapon() : LTNULL;
+
+	if(!m_bAdjusting)
+	{
+		if(!m_bAdjustLive || !(nPressed & AVP2XR_BTN_ADJUST) || !bPlaying || !pWeapon || pWeapon != m_pGripWeapon)
+			return;
+		m_bAdjusting = LTTRUE;
+		m_pAdjustWeapon = pWeapon;
+		m_nAdjustHand = 0;
+		m_bAdjustMove = LTFALSE;
+		memcpy(m_fAdjustStart[0], m_fGunFit, sizeof(m_fGunFit));
+		memcpy(m_fAdjustStart[1], m_fLeftFit, sizeof(m_fLeftFit));
+		memcpy(m_fAdjustStart[2], m_fMuzzleFit, sizeof(m_fMuzzleFit));
+		m_bAdjustChanged[0] = m_bAdjustChanged[1] = m_bAdjustChanged[2] = LTFALSE;
+		if(g_pMessageMgr)
+			g_pMessageMgr->AddMessage((char*)"Adjust: sticks fit it. Use: right hand/left hand/muzzle, Jump: turn/move, Vision: undo, Adjust: save");
+		VRLog("Adjust mode on for %s", pWeapon->szName);
+		ShowAdjust(LTTRUE);
+		return;
+	}
+
+	if((nPressed & AVP2XR_BTN_ADJUST) || !bPlaying || pWeapon != m_pAdjustWeapon)
+	{
+		EndAdjust();
+		return;
+	}
+
+	if(nPressed & AVP2XR_BTN_USE)
+	{
+		m_nAdjustHand = (m_nAdjustHand + 1) % 3;
+		ShowAdjust(LTTRUE);
+	}
+	if(nPressed & AVP2XR_BTN_JUMP)
+	{
+		m_bAdjustMove = !m_bAdjustMove;
+		ShowAdjust(LTTRUE);
+	}
+	LTFLOAT *pFit = (m_nAdjustHand == 2) ? m_fMuzzleFit : m_nAdjustHand ? m_fLeftFit : m_fGunFit;
+	if(nPressed & AVP2XR_BTN_VISION)
+	{
+		memcpy(pFit, m_fAdjustStart[m_nAdjustHand], sizeof(m_fGunFit));
+		m_bAdjustChanged[m_nAdjustHand] = LTFALSE;
+		if(m_nAdjustHand == 1)
+			ApplyLeftFit();
+		else if(m_nAdjustHand == 0)
+			ApplyGunFit();
+		if(g_pMessageMgr)
+			g_pMessageMgr->AddMessage((char*)"Adjust: undone");
+		ShowAdjust(LTTRUE);
+	}
+
+	LTFLOAT fFrameTime = g_pLTClient->GetFrameTime();
+	if(fFrameTime > 0.1f)
+		fFrameTime = 0.1f;
+	LTFLOAT lx = m_Input.moveValid ? AdjustStick(m_Input.move[0]) : 0.0f;
+	LTFLOAT ly = m_Input.moveValid ? AdjustStick(m_Input.move[1]) : 0.0f;
+	LTFLOAT rx = m_Input.turnValid ? AdjustStick(m_Input.turn) : 0.0f;
+	LTFLOAT ry = m_Input.turnValid ? AdjustStick(m_Input.turnY) : 0.0f;
+	LTFLOAT d[6] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
+	if(m_bAdjustMove)
+	{
+		LTFLOAT fCm = VR_ADJUST_CM_PER_SEC * fFrameTime;
+		d[0] = ly * fCm;	// forward
+		d[1] = ry * fCm;	// up
+		d[2] = lx * fCm;	// right
+	}
+	else
+	{
+		LTFLOAT fDeg = VR_ADJUST_DEGREES_PER_SEC * fFrameTime;
+		d[3] = ly * fDeg;	// pitch: up tilts it up
+		d[4] = lx * fDeg;	// yaw: right turns it right
+		d[5] = rx * fDeg;	// roll: right rolls it clockwise
+	}
+	LTBOOL bMoved = LTFALSE;
+	for(int k = 0; k < 6; k++)
+	{
+		if(d[k] != 0.0f)
+		{
+			pFit[k] += d[k];
+			bMoved = LTTRUE;
+		}
+	}
+	if(bMoved)
+	{
+		m_bAdjustChanged[m_nAdjustHand] = LTTRUE;
+		if(m_nAdjustHand == 1)
+			ApplyLeftFit();
+		else if(m_nAdjustHand == 0)
+			ApplyGunFit();
+		ShowAdjust(LTFALSE);
+	}
+}
+
+void VRMgr::EndAdjust()
+{
+	if(!m_bAdjusting)
+		return;
+	m_bAdjusting = LTFALSE;
+
+	// The buttons still held count for the game once they've been let go
+	m_nIgnoreButtons |= m_nAdjustRaw;
+
+	const char *szName = m_pAdjustWeapon ? m_pAdjustWeapon->szName : "";
+	char szMsg[256];
+	if(!szName[0] || !m_szHandsIni[0] || (!m_bAdjustChanged[0] && !m_bAdjustChanged[1] && !m_bAdjustChanged[2]))
+	{
+		if(g_pMessageMgr)
+			g_pMessageMgr->AddMessage((char*)"Adjust: off (nothing changed)");
+		VRLog("Adjust mode off: nothing changed");
+		return;
+	}
+
+	// A note at the top of a new hands.ini
+	if(GetFileAttributesA(m_szHandsIni) == INVALID_FILE_ATTRIBUTES)
+	{
+		FILE *pFile = fopen(m_szHandsIni, "w");
+		if(pFile)
+		{
+			fputs("; The weapons' fit in the hands, saved by adjust mode in the headset. These come before the\n"
+				  "; [Gun] and [LeftHand] lines in avp2xr.ini; delete a line here to use avp2xr.ini's again.\n"
+				  "; [Gun] <weapon> = forward up right  pitch yaw roll\n"
+				  "; [LeftHand] <weapon> = pitch yaw roll  forward up right\n"
+				  "; [Muzzle] <weapon> = forward up right  pitch yaw roll (where its shots start, moved from the model's\n"
+				  ";   muzzle, and how its flash is turned)\n\n", pFile);
+			fclose(pFile);
+		}
+	}
+
+	char szValue[128];
+	if(m_bAdjustChanged[0])
+	{
+		sprintf(szValue, "%.1f %.1f %.1f  %.1f %.1f %.1f", m_fGunFit[0], m_fGunFit[1], m_fGunFit[2], m_fGunFit[3], m_fGunFit[4], m_fGunFit[5]);
+		WritePrivateProfileStringA("Gun", szName, szValue, m_szHandsIni);
+		VRLog("Adjust: saved [Gun] %s=%s to %s", szName, szValue, m_szHandsIni);
+	}
+	if(m_bAdjustChanged[1])
+	{
+		sprintf(szValue, "%.1f %.1f %.1f  %.1f %.1f %.1f", m_fLeftFit[3], m_fLeftFit[4], m_fLeftFit[5], m_fLeftFit[0], m_fLeftFit[1], m_fLeftFit[2]);
+		WritePrivateProfileStringA("LeftHand", szName, szValue, m_szHandsIni);
+		VRLog("Adjust: saved [LeftHand] %s=%s to %s", szName, szValue, m_szHandsIni);
+	}
+	if(m_bAdjustChanged[2])
+	{
+		sprintf(szValue, "%.1f %.1f %.1f  %.1f %.1f %.1f", m_fMuzzleFit[0], m_fMuzzleFit[1], m_fMuzzleFit[2],
+			m_fMuzzleFit[3], m_fMuzzleFit[4], m_fMuzzleFit[5]);
+		WritePrivateProfileStringA("Muzzle", szName, szValue, m_szHandsIni);
+		VRLog("Adjust: saved [Muzzle] %s=%s to %s", szName, szValue, m_szHandsIni);
+	}
+	sprintf(szMsg, "Adjust: saved%s%s%s for %s (hands.ini)", m_bAdjustChanged[0] ? " right hand" : "",
+		m_bAdjustChanged[1] ? " left hand" : "", m_bAdjustChanged[2] ? " muzzle" : "", szName);
+	if(g_pMessageMgr)
+		g_pMessageMgr->AddMessage(szMsg);
+}
+
+void VRMgr::ShowAdjust(LTBOOL bNow)
+{
+	uint32 nNow = GetTickCount();
+	if(!bNow && (int32)(nNow - m_nAdjustShowTime) < 400)
+		return;
+	m_nAdjustShowTime = nNow;
+
+	char szMsg[256];
+	if(m_nAdjustHand == 2)
+	{
+		sprintf(szMsg, "Muzzle (fire to see it), %s: pitch %.1f yaw %.1f roll %.1f | fwd %.1f up %.1f right %.1f",
+			m_bAdjustMove ? "MOVE" : "TURN", m_fMuzzleFit[3], m_fMuzzleFit[4], m_fMuzzleFit[5],
+			m_fMuzzleFit[0], m_fMuzzleFit[1], m_fMuzzleFit[2]);
+		if(g_pMessageMgr)
+			g_pMessageMgr->AddMessage(szMsg);
+		return;
+	}
+	const LTFLOAT *pFit = m_nAdjustHand ? m_fLeftFit : m_fGunFit;
+	sprintf(szMsg, "%s hand, %s: pitch %.1f yaw %.1f roll %.1f | fwd %.1f up %.1f right %.1f",
+		m_nAdjustHand ? "Left" : "Right", m_bAdjustMove ? "MOVE" : "TURN",
+		pFit[3], pFit[4], pFit[5], pFit[0], pFit[1], pFit[2]);
+	if(g_pMessageMgr)
+		g_pMessageMgr->AddMessage(szMsg);
+}
+
+// ----------------------------------------------------------------------- //
 
 LTBOOL VRMgr::BeginFrame()
 {
@@ -1171,7 +1577,7 @@ LTBOOL VRMgr::BeginFrame()
 		// it's pushed, or in snaps, one per push. The body follows the head, so it turns too. Only
 		// while left/right is the stick's main direction, so weapon cycling (up/down) doesn't turn.
 		LTFLOAT fSnap = g_vtVRSnapTurn.GetFloat();
-		if(m_Input.turnValid && m_bAnchorValid)
+		if(m_Input.turnValid && m_bAnchorValid && !m_bAdjusting)
 		{
 			LTFLOAT x = m_Input.turn;
 			LTBOOL bSideways = fabs(x) > fabs(m_Input.turnY);
@@ -1265,7 +1671,8 @@ void VRMgr::GetEyeCamera(int nEye, HCAMERA hCamera, const LTVector &vPos, const 
 		m_bGripWorld = m_Input.gripValid;
 		if(m_bGripWorld)
 			m_vGripPos = vPos + Rotate(rYaw, FromXrPos(m_Input.gripPosition, ref) * fScale);
-		m_rAimRot = rYaw * FromXr(m_Input.aimOrientation) * m_rGunAngleCur;
+		m_rShotRot = rYaw * FromXr(m_Input.aimOrientation);
+		m_rAimRot = m_rShotRot * m_rGunAngleCur;
 		m_bAimWorld = LTTRUE;
 
 		// The off hand, for the model's left arm. Only its grip pose is known; the right hand's
@@ -1290,7 +1697,7 @@ void VRMgr::GetEyeCamera(int nEye, HCAMERA hCamera, const LTVector &vPos, const 
 			LTFLOAT fLen = vToOff.Mag();
 			LTFLOAT fMetres = fLen / fScale;
 			LTVector vR, vU, vF;
-			LTRotation rAim = m_rAimRot;
+			LTRotation rAim = m_rShotRot;
 			g_pLTClient->GetMathLT()->GetRotationVectors(rAim, vR, vU, vF);
 			LTFLOAT fCos = (fLen > 0.0001f) ? vToOff.Dot(vF) / fLen : -1.0f;
 
@@ -1309,6 +1716,7 @@ void VRMgr::GetEyeCamera(int nEye, HCAMERA hCamera, const LTVector &vPos, const 
 				{
 					vUp.Norm();
 					m_rAimRot = QuatFromBasis(CrossStd(vUp, vForward), vUp, vForward);
+					m_rShotRot = m_rAimRot;
 				}
 			}
 		}
@@ -1445,7 +1853,7 @@ LTBOOL VRMgr::GetStereoFOVTangents(LTFLOAT &fTanX, LTFLOAT &fTanY) const
 
 LTBOOL VRMgr::GetMoveDirection(LTVector &vDir) const
 {
-	if(!m_bLastFrameInput || !m_Input.moveValid)
+	if(!m_bLastFrameInput || !m_Input.moveValid || m_bAdjusting)
 		return LTFALSE;
 
 	LTFLOAT x = m_Input.move[0], y = m_Input.move[1];
@@ -1465,7 +1873,7 @@ LTBOOL VRMgr::GetMoveDirection(LTVector &vDir) const
 
 LTBOOL VRMgr::GetMoveStick(LTFLOAT &fRight, LTFLOAT &fForward) const
 {
-	if(!m_bLastFrameInput || !m_Input.moveValid)
+	if(!m_bLastFrameInput || !m_Input.moveValid || m_bAdjusting)
 		return LTFALSE;
 
 	LTFLOAT x = m_Input.move[0], y = m_Input.move[1];
@@ -1487,7 +1895,7 @@ LTBOOL VRMgr::GetAimDirection(LTVector &vDir) const
 	if(!m_bLastFrameInput || !m_Input.aimValid)
 		return LTFALSE;
 
-	vDir = Rotate(YawRotation(m_fAnchorYaw) * FromXr(m_Input.aimOrientation) * m_rGunAngleCur, LTVector(0.0f, 0.0f, 1.0f));
+	vDir = Rotate(YawRotation(m_fAnchorYaw) * FromXr(m_Input.aimOrientation), LTVector(0.0f, 0.0f, 1.0f));
 	return LTTRUE;
 }
 
@@ -1520,7 +1928,7 @@ LTBOOL VRMgr::GetAimPose(LTVector &vPos, LTRotation &rRot) const
 		return LTFALSE;
 
 	vPos = m_bLastFrameMuzzle ? m_vShotPos : m_vAimPos;
-	rRot = m_rAimRot;
+	rRot = m_rShotRot;
 	return LTTRUE;
 }
 
@@ -1532,7 +1940,7 @@ LTBOOL VRMgr::GetMuzzlePose(LTVector &vPos, LTRotation &rRot) const
 		return LTFALSE;
 
 	vPos = m_vMuzzlePos;
-	rRot = m_rAimRot;
+	rRot = m_rShotRot;
 	return LTTRUE;
 }
 
@@ -1583,26 +1991,7 @@ void VRMgr::PlaceWeapon()
 		m_pGripWeapon = pWeapon->GetWeapon();
 		m_bGripHeld = LTFALSE;
 
-		// avp2xr.ini [Gun] <weapon> = forward up right [pitch yaw roll]: this weapon's own place in
-		// the hand (cm, degrees), in place of the Gun* settings. Read now, so editing the ini (and
-		// running update_ini.bat) takes effect at the next change of weapon.
-		m_vGunOffsetCur = LTVector(g_vtVRGunOffsetX.GetFloat(), g_vtVRGunOffsetY.GetFloat(), g_vtVRGunOffsetZ.GetFloat());
-		m_rGunAngleCur = m_rGunAngle;
-		char szValue[128] = "";
-		const char *szName = m_pGripWeapon ? m_pGripWeapon->szName : "";
-		if(m_szIni[0] && szName[0])
-			GetPrivateProfileStringA("Gun", szName, "", szValue, sizeof(szValue), m_szIni);
-		float f[6] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-		int nValues = szValue[0] ? sscanf(szValue, "%f %f %f %f %f %f", &f[0], &f[1], &f[2], &f[3], &f[4], &f[5]) : 0;
-		if(nValues >= 1)
-		{
-			LTFLOAT fUnitsPerCm = g_vtVRWorldScale.GetFloat() / 100.0f;
-			m_vGunOffsetCur = LTVector(f[2], f[1], f[0]) * fUnitsPerCm;
-		}
-		if(nValues >= 4)
-			m_rGunAngleCur = GunAngleRotation(f[3], f[4], f[5]);
-		VRLog("Gun for %s: [Gun] %s=%s", szName[0] ? szName : "?", szName[0] ? szName : "?",
-			nValues >= 1 ? szValue : "(not set: the Gun* settings)");
+		ReadGunFit(m_pGripWeapon ? m_pGripWeapon->szName : "");
 	}
 	if(bWrist && bKnuckle)
 	{
@@ -1654,14 +2043,35 @@ void VRMgr::PlaceWeapon()
 	LTVector vMuzzle;
 	LTVector vFlatEye = -m_vWeaponPos;
 	LTVector vFlatFlash = pWeapon->GetMuzzleOffset();
-	LTBOOL bMuzzle = FindModelSocket(hWeapon, s_szMuzzleSockets, 3, vMuzzle);
+	LTBOOL bMuzzle = LTFALSE;
+	LTransform tMuzzleNode;
+	if(m_hMuzzleNode != INVALID_MODEL_NODE &&
+	   g_pLTClient->GetModelLT()->GetNodeTransform(hWeapon, m_hMuzzleNode, tMuzzleNode, LTFALSE) == LT_OK)
+	{
+		g_pLTClient->GetTransformLT()->GetPos(tMuzzleNode, vMuzzle);
+		bMuzzle = LTTRUE;
+	}
+	if(!bMuzzle)
+		bMuzzle = FindModelSocket(hWeapon, s_szMuzzleSockets, 3, vMuzzle);
 	if(!bMuzzle)
 		vMuzzle = vFlatEye + (vFlatFlash - vFlatEye) * g_vtVRFlashDepth.GetFloat();
 	m_vMuzzlePos = vOrigin + Rotate(m_rAimRot, vMuzzle * fScale);
+	m_vMuzzlePos += Rotate(m_rAimRot, LTVector(m_fMuzzleFit[2], m_fMuzzleFit[1], m_fMuzzleFit[0]) * (g_vtVRWorldScale.GetFloat() / 100.0f));
+	m_rMuzzleRot = m_rAimRot * GunAngleRotation(m_fMuzzleFit[3], m_fMuzzleFit[4], m_fMuzzleFit[5]);
+
+	// The flash's own socket (s_MuzzleNodes), in model space as the weapon is posed
+	m_bFlashSocket = LTFALSE;
+	LTransform tFlash;
+	if(m_hFlashSocket != INVALID_MODEL_SOCKET &&
+	   g_pLTClient->GetModelLT()->GetSocketTransform(hWeapon, m_hFlashSocket, tFlash, LTFALSE) == LT_OK)
+	{
+		g_pLTClient->GetTransformLT()->GetPos(tFlash, m_vFlashSocket);
+		m_bFlashSocket = LTTRUE;
+	}
 	m_bMuzzleWorld = LTTRUE;
 
-	// Shots (and the crosshair) come out of the muzzle along the aim, so they follow the barrel
-	// wherever the gun sits in the hand. Weapons without a muzzle (melee: no socket and no flash
+	// Shots (and the crosshair) come out of the muzzle along the controller's aim, whatever angle
+	// the gun is turned to in the hand ([Gun]). Weapons without a muzzle (melee: no socket and no flash
 	// position) fire from the controller.
 	m_vShotPos = (bMuzzle || vFlatFlash.MagSqr() > 0.01f) ? m_vMuzzlePos : m_vAimPos;
 
@@ -1670,7 +2080,7 @@ void VRMgr::PlaceWeapon()
 	CCrosshairMgr *pCrosshair = g_pGameClientShell->GetInterfaceMgr()->GetCrosshairMgr();
 	if(m_bShowCrosshair && pCrosshair && pCrosshair->WantsVRCrosshair() && WeaponHasCrosshair(pWeapon->GetWeapon()))
 	{
-		LTVector vAimDir = Rotate(m_rAimRot, LTVector(0.0f, 0.0f, 1.0f));
+		LTVector vAimDir = Rotate(m_rShotRot, LTVector(0.0f, 0.0f, 1.0f));
 		IntersectQuery iq;
 		IntersectInfo ii;
 		iq.m_From = m_vShotPos;
@@ -1692,7 +2102,12 @@ void VRMgr::PlaceWeapon()
 	{
 		pFlash->PlaceLight(m_vMuzzlePos);
 		if(m_bWeaponView)
-			pFlash->BeginVRScale(fFlashScale);
+		{
+			if(m_bFlashSocket)
+				fFlashScale *= g_vtVRFlashSize.GetFloat();
+			pFlash->BeginVRScale((m_bFlashSocket && g_vtVRFlashWorld.GetFloat() != 0.0f) ? fFlashScale * m_fWeaponScale : fFlashScale,
+				m_bFlashSocket);
+		}
 	}
 	m_fWeaponScale = (fScale > 0.01f) ? fScale : 0.01f;
 
@@ -1775,11 +2190,35 @@ void VRMgr::PlaceWeaponForEye(const LTVector &vEyePos, const LTRotation &rEyeRot
 	// The flash's really-close parts go at the muzzle the same way. The game puts them back at
 	// its own place every frame it shows them.
 	// So do the weapon's own fx at its sockets (the flamethrower's pilot light...)
-	pWeapon->GetPVFXMgr()->PlaceForView(vEyePos, rEyeRot, m_fWeaponScale);
+	// (on a weapon whose muzzle is a node, s_MuzzleNodes, they go there instead of their sockets)
+	LTVector vMuzzleView = Rotate(rToEye, m_vMuzzlePos - vEyePos) / m_fWeaponScale;
+	pWeapon->GetPVFXMgr()->PlaceForView(vEyePos, rEyeRot, m_fWeaponScale,
+		m_hMuzzleNode != INVALID_MODEL_NODE ? &vMuzzleView : LTNULL);
 
+	// The flash at the muzzle, or on its own socket (s_MuzzleNodes) where it's drawn: on the left-arm
+	// copy when the arm's there (the socket is on the arm's gauntlet), else on the weapon
 	CMuzzleFlashFX *pFlash = pWeapon->GetMuzzleFlash();
 	if(pFlash)
-		pFlash->PlaceInView(Rotate(rToEye, m_vMuzzlePos - vEyePos) / m_fWeaponScale, rRot);
+	{
+		LTVector vFlashPos = m_vMuzzlePos;
+		if(m_bFlashSocket)
+		{
+			LTVector vMove = LTVector(g_vtVRFlashRight.GetFloat(), g_vtVRFlashUp.GetFloat(), g_vtVRFlashForward.GetFloat()) *
+				(g_vtVRWorldScale.GetFloat() / 100.0f);
+			vFlashPos = m_bArmCopyActive ? m_vArmCopyOrigin + Rotate(m_rArmCopyRot, m_vFlashSocket * m_fWeaponScale + vMove) :
+										   m_vWeaponOrigin + Rotate(m_rAimRot, m_vFlashSocket * m_fWeaponScale + vMove);
+			// The socket is on the gauntlet's surface, which hid the flash drawn right at it: a little
+			// way out towards the eye instead
+			LTVector vToEye = vEyePos - vFlashPos;
+			LTFLOAT fToEye = vToEye.Mag();
+			LTFLOAT fOut = g_vtVRFlashOut.GetFloat() * g_vtVRWorldScale.GetFloat() / 100.0f;
+			if(fToEye > fOut * 2.0f)
+				vFlashPos += vToEye * (fOut / fToEye);
+		}
+		pFlash->PlaceInView(Rotate(rToEye, vFlashPos - vEyePos) / m_fWeaponScale, rToEye * m_rMuzzleRot);
+		if(m_bFlashSocket && g_vtVRFlashWorld.GetFloat() != 0.0f)
+			pFlash->PlaceParticlesInWorld(vFlashPos);
+	}
 
 	PlaceRailOverlay(vEyePos, rEyeRot);
 
@@ -1849,23 +2288,9 @@ void VRMgr::PlaceLeftArm(HOBJECT hWeapon, WEAPON *pWeapon, int nState)
 		if(m_hArmRoot != INVALID_MODEL_NODE)
 			g_pLTClient->SetObjectClientFlags(hWeapon, g_pLTClient->GetObjectClientFlags(hWeapon) | CF_INSIDERADIUS | CF_DONTSETDIMS);
 
-		// avp2xr.ini [LeftHand] <weapon> = pitch yaw roll [forward up right]: this weapon's own
-		// angle (and offset) for the hand, in place of the LeftHand* ones. Read now, so editing
-		// the ini (and running Install_avp2vr.bat) takes effect at the next change of weapon.
-		m_vArmOffset = m_vLeftOffset;
-		m_rArmAngle = m_rLeftAngle;
-		char szValue[128] = "";
 		const char *szName = pWeapon ? pWeapon->szName : "";
-		if(m_szIni[0] && szName[0])
-			GetPrivateProfileStringA("LeftHand", szName, "", szValue, sizeof(szValue), m_szIni);
-		float f[6] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-		int nValues = szValue[0] ? sscanf(szValue, "%f %f %f %f %f %f", &f[0], &f[1], &f[2], &f[3], &f[4], &f[5]) : 0;
-		if(nValues >= 3)
-			m_rArmAngle = GunAngleRotation(f[0], f[1], f[2]);
-		if(nValues >= 6)
-			m_vArmOffset = LTVector(f[5], f[4], f[3]) * (g_vtVRWorldScale.GetFloat() / 100.0f);
-		VRLog("Left arm for %s: root %s, %d of 4 hand nodes, [LeftHand] %s=%s, %s", szName[0] ? szName : "?", szRoot, nHand,
-			szName[0] ? szName : "?", nValues >= 3 ? szValue : "(not set: the LeftHand* settings)",
+		ReadLeftFit(szName);
+		VRLog("Left arm for %s: root %s, %d of 4 hand nodes, %s", szName[0] ? szName : "?", szRoot, nHand,
 			m_nArmSplit >= 0 ? "drawn as a copy of the model (its own pieces)" : "moved by node control");
 	}
 
@@ -2181,7 +2606,7 @@ void VRMgr::PlaceRailOverlay(const LTVector &vEyePos, const LTRotation &rEyeRot)
 	if(m_nRailScope == 1)
 	{
 		LTVector vTarget = m_bCrosshairHit ? m_vCrosshairPos :
-			m_vShotPos + Rotate(m_rAimRot, LTVector(0.0f, 0.0f, VR_CROSSHAIR_RANGE));
+			m_vShotPos + Rotate(m_rShotRot, LTVector(0.0f, 0.0f, VR_CROSSHAIR_RANGE));
 		LTVector vDir = Rotate(rEyeRot.Conjugate(), vTarget - vEyePos);
 		if(vDir.z < 1.0f)
 			return;	// behind the eye: leave it where the game has it
@@ -2195,7 +2620,7 @@ void VRMgr::PlaceRailOverlay(const LTVector &vEyePos, const LTRotation &rEyeRot)
 	if(m_fRailSize <= 0.0f)
 		return;
 
-	LTVector vCentre = m_vShotPos + Rotate(m_rAimRot, LTVector(0.0f, 0.0f, m_fRailDistance));
+	LTVector vCentre = m_vShotPos + Rotate(m_rShotRot, LTVector(0.0f, 0.0f, m_fRailDistance));
 	LTVector vPos = Rotate(rEyeRot.Conjugate(), vCentre - vEyePos) / m_fWeaponScale;
 	LTFLOAT fHalf = m_fRailSize * 0.5f / m_fWeaponScale / fSize;
 	LTVector vScale(fHalf, fHalf, 1.0f);
@@ -2219,6 +2644,27 @@ void VRMgr::OnWeaponModelFiles(HOBJECT hWeapon, const ObjectCreateStruct *pStruc
 	if(szBase2 > szBase)
 		szBase = szBase2;
 	szBase = szBase ? szBase + 1 : szFile;
+
+	// The node to use as its muzzle, if it has one (s_MuzzleNodes), and the socket for its flash
+	m_hMuzzleNode = INVALID_MODEL_NODE;
+	m_hFlashSocket = INVALID_MODEL_SOCKET;
+	for(int m = 0; m < (int)(sizeof(s_MuzzleNodes) / sizeof(s_MuzzleNodes[0])); m++)
+	{
+		if(stricmp(s_MuzzleNodes[m].szModel, szBase))
+			continue;
+		char szHidden[64];
+		sprintf(szHidden, "_zN_%s", s_MuzzleNodes[m].szNode);
+		const char *szNames[2] = { s_MuzzleNodes[m].szNode, szHidden };
+		m_hMuzzleNode = FindNodeHandle(hWeapon, szNames, 2, LTNULL);
+		if(s_MuzzleNodes[m].szFlashSocket &&
+		   g_pLTClient->GetModelLT()->GetSocket(hWeapon, (char*)s_MuzzleNodes[m].szFlashSocket, m_hFlashSocket) != LT_OK)
+			m_hFlashSocket = INVALID_MODEL_SOCKET;
+		VRLog("Muzzle for %s: node %s %s, flash on socket %s %s", szBase, s_MuzzleNodes[m].szNode,
+			m_hMuzzleNode != INVALID_MODEL_NODE ? "found" : "NOT FOUND (the model's own muzzle instead)",
+			s_MuzzleNodes[m].szFlashSocket ? s_MuzzleNodes[m].szFlashSocket : "-",
+			m_hFlashSocket != INVALID_MODEL_SOCKET ? "found" : "not used");
+	}
+
 	m_nArmSplit = -1;
 	for(int i = 0; i < (int)(sizeof(s_ArmPieces) / sizeof(s_ArmPieces[0])); i++)
 		if(!stricmp(s_ArmPieces[i].szModel, szBase))

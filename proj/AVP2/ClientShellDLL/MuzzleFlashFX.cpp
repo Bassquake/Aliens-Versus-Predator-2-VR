@@ -668,6 +668,21 @@ void CMuzzleFlashFX::PlaceInView(const LTVector &vCamPos, const LTRotation &rCam
 	}
 }
 
+void CMuzzleFlashFX::PlaceParticlesInWorld(const LTVector &vWorldPos)
+{
+	if (m_bHidden || !m_bUsingParticles) return;
+
+	HOBJECT hObj = m_Particle.GetObject();
+	if (!hObj) return;
+
+	LTVector vPos = vWorldPos;
+	LTRotation rRot;
+	rRot.Init();
+	g_pLTClient->SetObjectFlags(hObj, g_pLTClient->GetObjectFlags(hObj) & ~FLAG_REALLYCLOSE);
+	g_pLTClient->SetObjectPos(hObj, &vPos, LTTRUE);
+	g_pLTClient->SetObjectRotation(hObj, &rRot);
+}
+
 void CMuzzleFlashFX::PlaceLight(const LTVector &vWorldPos)
 {
 	if (m_bHidden || !m_bUsingLight) return;
@@ -678,7 +693,7 @@ void CMuzzleFlashFX::PlaceLight(const LTVector &vWorldPos)
 		g_pLTClient->SetObjectPos(hObj, &vPos, LTTRUE);
 }
 
-void CMuzzleFlashFX::BeginVRScale(LTFLOAT fScale)
+void CMuzzleFlashFX::BeginVRScale(LTFLOAT fScale, LTBOOL bAtOrigin)
 {
 	if (m_bHidden || m_bVRScaled) return;
 	m_bVRScaled = LTTRUE;
@@ -705,7 +720,10 @@ void CMuzzleFlashFX::BeginVRScale(LTFLOAT fScale)
 			m_fVRParticleSize[m_nVRParticles] = pHead->m_Size;
 			m_nVRParticles++;
 
-			vPos *= fScale;
+			if (bAtOrigin)
+				vPos.Init();
+			else
+				vPos *= fScale;
 			g_pLTClient->SetParticlePos(hObj, pHead, &vPos);
 			pHead->m_Size *= fScale;
 			pHead = pHead->m_pNext;
