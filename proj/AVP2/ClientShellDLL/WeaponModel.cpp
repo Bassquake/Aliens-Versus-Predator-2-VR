@@ -2539,6 +2539,14 @@ LTBOOL CWeaponModel::PlaySelectAnimation()
 
 	if (!m_hObject || dwSelectAni == INVALID_ANI) return LTFALSE;
 
+	// VR, avp2xr.ini WeaponSwitchAnimations=no: the weapon's simply up, as when the animation is done
+	if (g_pGameClientShell->GetVRMgr()->SkipsWeaponSwitchAnims())
+	{
+		if(m_pBarrel && m_pBarrel->eBarrelType==BT_ALIEN_SPECIAL)
+			PlayChargeAnimation(LTTRUE, LTTRUE);
+		return LTFALSE;
+	}
+
 	uint32 dwAni	= g_pInterface->GetModelAnimation(m_hObject);
 	uint32 dwState	= g_pInterface->GetModelPlaybackState(m_hObject);
 
@@ -2582,6 +2590,10 @@ LTBOOL CWeaponModel::PlayDeselectAnimation()
 	uint32 dwDeselectAni = GetDeselectAni();
 
 	if (!m_hObject || dwDeselectAni == INVALID_ANI) return LTFALSE;
+
+	// VR, avp2xr.ini WeaponSwitchAnimations=no: the weapon's put away at once
+	if (g_pGameClientShell->GetVRMgr()->SkipsWeaponSwitchAnims())
+		return LTFALSE;
 
 	uint32 dwAni	= g_pInterface->GetModelAnimation(m_hObject);
 	uint32 dwState	= g_pInterface->GetModelPlaybackState(m_hObject);

@@ -71,6 +71,10 @@ class VRMgr
 		// weapon then holds still while idle instead of swaying and fidgeting in the hand.
 		LTBOOL		StopsWeaponIdle() const;
 
+		// LTTRUE while VR is in use and avp2xr.ini's WeaponSwitchAnimations is no: weapons change
+		// at once, without being lowered and raised
+		LTBOOL		SkipsWeaponSwitchAnims() const;
+
 		// LTTRUE while VR is in use and avp2xr.ini's AlwaysRun is yes: the player always runs
 		LTBOOL		AlwaysRuns() const					{ return m_pApi && m_bAlwaysRun; }
 
@@ -236,6 +240,7 @@ class VRMgr
 		LTVector		m_vRailPos;
 		LTVector		m_vRailScale;
 		LTBOOL			m_bWeaponIdleAnims;		// avp2xr.ini [VR] WeaponIdleAnimations
+		LTBOOL			m_bWeaponSwitchAnims;	// avp2xr.ini [VR] WeaponSwitchAnimations
 		LTBOOL			m_bSmoothTurn;			// avp2xr.ini [VR] TurnMode = smooth (else snap)
 		LTFLOAT			m_fSmoothTurnSpeed;		// ...SmoothTurnSpeed, degrees per second at full push
 		LTRotation		m_rGunAngle;			// avp2xr.ini GunPitch/GunYaw/GunRoll, in the controller's frame

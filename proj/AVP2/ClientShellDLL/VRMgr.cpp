@@ -488,6 +488,7 @@ VRMgr::VRMgr()
 	m_vRailPos.Init();
 	m_vRailScale.Init(1.0f, 1.0f, 1.0f);
 	m_bWeaponIdleAnims = LTFALSE;
+	m_bWeaponSwitchAnims = LTTRUE;
 	m_bSmoothTurn = LTTRUE;
 	m_fSmoothTurnSpeed = VR_DEFAULT_SMOOTH_TURN;
 	m_rGunAngle.Init();
@@ -736,6 +737,9 @@ LTBOOL VRMgr::FindApi()
 
 				GetPrivateProfileStringA("VR", "WeaponIdleAnimations", "no", szValue, sizeof(szValue), szIni);
 				m_bWeaponIdleAnims = szValue[0] && !strchr("nN0fF", szValue[0]);
+				GetPrivateProfileStringA("VR", "WeaponSwitchAnimations", "yes", szValue, sizeof(szValue), szIni);
+				m_bWeaponSwitchAnims = !szValue[0] || !strchr("nN0fF", szValue[0]);
+				VRLog("Settings: WeaponSwitchAnimations=%s", m_bWeaponSwitchAnims ? "yes" : "no");
 
 				// Turning with the right stick
 				GetPrivateProfileStringA("VR", "TurnMode", "smooth", szValue, sizeof(szValue), szIni);
@@ -990,6 +994,11 @@ LTBOOL VRMgr::HidesCursor() const
 LTBOOL VRMgr::StopsWeaponIdle() const
 {
 	return m_pApi && g_vtVREnable.GetFloat() != 0.0f && !m_bWeaponIdleAnims;
+}
+
+LTBOOL VRMgr::SkipsWeaponSwitchAnims() const
+{
+	return m_pApi && g_vtVREnable.GetFloat() != 0.0f && !m_bWeaponSwitchAnims;
 }
 
 // ----------------------------------------------------------------------- //
