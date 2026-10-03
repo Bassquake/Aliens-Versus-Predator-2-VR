@@ -20,7 +20,7 @@ Short video of it in action on a Quest 2 here on [YouTube](https://youtu.be/4kNU
 
 - Enhance the Steam Library by adding cover art etc:
 
-Add the **AVP2VR_(SteamVR_runtime).bat** (in the game folder) to the Steam Library as a non-Steam game:
+Add the original **AVP2.exe** (in the game folder) to the Steam Library as a non-Steam game:
 
 ![Screenshot of adding non-Steam game](https://github.com/Bassquake/Aliens-Versus-Predator-2-VR/blob/main/captures/steam-add-app.png)
 
