@@ -42,7 +42,9 @@ Choose Customisation and change images. The image files are named the same as th
 
 - Finally, on your headset, run Steam Link and navigate to the game in your library. Simply click Play! (Virtual Desktop is untested). Your desktop will mirror the view.
 
-Note: You can also double click **AVP2VR_(SteamVR_runtime).bat** on the PC and it'll auto load in headset if Steam Link is already running.
+Note 1: You can also double click **AVP2VR_(SteamVR_runtime).bat** on the PC and it'll auto load in headset if Steam Link is already running.
+
+Note 2: If you have issues such as "Missing cres.dll" popup then try copying the **avp2cmds.txt** into the game folder and try running again.
 
 ## Controls
 I've tried to map as many of the functions to the controllers buttons as there are a lot more than Aliens Versus Predator had! They can be customised by editing the **avp2xr.ini** located in **C:\Program Files (x86)\Fox\Aliens vs. Predator 2**.
