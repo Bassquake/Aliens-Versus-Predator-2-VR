@@ -435,11 +435,10 @@ LTBOOL CFolderMulti::Render(HSURFACE hDestSurf)
 {
     LTBOOL bOK = CBaseFolder::Render(hDestSurf);
 
-	LTBOOL bBypass = LTFALSE;
-
-#ifdef _DEMO
-	bBypass = LTTRUE;
-#endif
+	// Always bypass the online checks: the CD key, directory servers, MOTD and version check all used
+	// Sierra's WON servers, which shut down in 2004, so the CD key prompt could never succeed. Internet
+	// hosting and joining by IP don't need them.
+	LTBOOL bBypass = LTTRUE;
 
 
 	// If we're in LAN mode, don't do the rest of this junk...
@@ -474,10 +473,7 @@ LTBOOL CFolderMulti::Render(HSURFACE hDestSurf)
 		{
 			if(bBypass)
 			{
-				m_nVerifyState = VERIFYSTATE_USER;
-
-				SetDialogText_DCS(IDS_DIRSERVER_TITLE, IDS_DIRSERVER_TEXT, LTNULL);
-				ShowDialog_DCS(LTTRUE, DCS_TYPE_STANDARD);
+				m_nVerifyState = VERIFYSTATE_COMPLETE;
 			}
 			else if(!m_GameSpyClientMgr.SetupCDKey())
 			{
@@ -685,7 +681,7 @@ LTBOOL CFolderMulti::Render(HSURFACE hDestSurf)
 				m_pJoinSpeed->Enable(LTTRUE);
 			}
 
-			m_pUpdateCDK->Enable(LTTRUE);
+			m_pUpdateCDK->Enable(!bBypass);
 			m_pMain->Enable(LTTRUE);
 
 			// Move on automatically if everything for GameSpy Arcade is setup right...
@@ -719,7 +715,7 @@ LTBOOL CFolderMulti::Render(HSURFACE hDestSurf)
 					m_pJoinSpeed->Enable(LTTRUE);
 				}
 
-				m_pUpdateCDK->Enable(LTTRUE);
+				m_pUpdateCDK->Enable(!bBypass);
 				m_pMain->Enable(LTTRUE);
 			}
 
