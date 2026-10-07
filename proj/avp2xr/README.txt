@@ -88,9 +88,13 @@ Stereo (option 2)
 Loading the VR cshell
   The engine only loads cshell.dll/object.lto from its -rez list (avp2cmds.txt, written by the launcher);
   the retail copies live in AVP2DLL.REZ, and loose DLLs in the game folder are NOT used. Install_avp2vr.bat copies
-  deploy\vrrez\cshell.dll into <game folder>\vrrez, and the VR launchers run lithtech.exe -cmdfile avp2cmds.txt
-  -rez vrrez from the game folder; later -rez entries win, so that cshell.dll replaces the retail one.
-  After rebuilding cshell, copy K:\Coding\Aliens-Versus-Predator-2-VR\proj\AVP2\AVP2\cshell.dll to deploy\vrrez\ and run Install_avp2vr.bat.
+  deploy\vrrez\cshell.dll into <game folder>\vrrez, and the VR launchers run lithtech.exe with avp2cmds.txt's
+  -rez list plus -rez vrrez from the game folder; later -rez entries win, so that cshell.dll replaces the retail one.
+  vrrez also gets object.lto, cres.dll and sres.dll built from the same source, so Master Server Patch 2.4
+  (avp2p5.rez: its own cshell.dll, cres.dll and sres.dll, and retail 1.0.9.6's object.lto) can stay in the
+  list for its maps and art.
+  After rebuilding, copy cshell.dll (and object.lto/cres.dll/sres.dll if they changed) from
+  K:\Coding\Aliens-Versus-Predator-2-VR\proj\AVP2\AVP2\ to deploy\vrrez\ and run Install_avp2vr.bat.
 
 HUD (API version 2)
   In stereo, cshell renders the eyes, calls SubmitStereo(eyes, hudFollows=1) and flips; then it clears to black,
@@ -103,9 +107,17 @@ HUD (API version 2)
 Resolution (API version 3)
   dgVoodoo's forced resolution sets the D3D11 back buffer size exactly (measured with test\ddtest.cpp), while
   the game keeps its own mode (e.g. 1280x960). The forced size is (2 x per-eye width) x per-eye height, using
-  the headset's recommended size, which the proxy logs at startup ("ideal dgVoodoo Resolution = ..."). If
-  you change SteamVR's render resolution, update [DirectX] Resolution to match. cshell reports the game's own
-  resolution via SetGameResolution so the HUD panel and flat screen keep the game's aspect ratio.
+  the headset's recommended size, which the proxy logs at startup ("ideal dgVoodoo Resolution = ...").
+  cshell reports the game's own resolution via SetGameResolution so the HUD panel and flat screen keep the
+  game's aspect ratio.
+  The AVP2VR launchers run xrres.exe (xrres.cpp, built by build.bat) first: it asks the runtime for the
+  recommended per-eye size (so it follows SteamVR's render resolution), multiplies it by avp2xr.ini
+  [VR] RenderScale and writes the result as [DirectX] Resolution into a copy of the game folder's
+  dgVoodoo.conf in %LOCALAPPDATA%\VirtualStore\Program Files (x86)\Fox\Aliens vs. Predator 2. lithtech.exe
+  has no manifest, so Windows virtualizes it and dgVoodoo reads that copy; the game folder needs admin to
+  write. If xrres can't reach the runtime (headset asleep) it writes nothing and the last resolution stays;
+  with no copy yet, deploy\dgVoodoo.conf's Resolution applies. "xrres.exe 2244x2352" uses that per-eye size
+  instead of asking the runtime.
 
 Gamma
   avp2xr.ini Gamma (default 1 = off): the proxy copies the stereo frame and draws it back through

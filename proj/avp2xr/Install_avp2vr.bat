@@ -5,7 +5,7 @@ rem run this again to apply a change.
 setlocal
 set GAME=C:\Program Files (x86)\Fox\Aliens vs. Predator 2
 net session >nul 2>&1 || (echo Run this as administrator. & pause & exit /b 1)
-for %%f in (DDraw.dll D3DImm.dll dgVoodoo.conf d3d11.dll openxr_loader.dll "AVP2VR_(SteamVR_runtime).bat" Uninstall_avp2vr.bat) do (
+for %%f in (DDraw.dll D3DImm.dll dgVoodoo.conf d3d11.dll openxr_loader.dll xrres.exe "AVP2VR_(SteamVR_runtime).bat" Uninstall_avp2vr.bat) do (
 	copy /y "%~dp0deploy\%%~f" "%GAME%\" >nul || (echo Failed to copy %%~f & pause & exit /b 1)
 	echo Installed %%~f
 )
@@ -18,9 +18,13 @@ echo Installed avp2xr.ini
 rem The VR cshell.dll goes in its own vrrez folder in the game folder: the engine only loads game
 rem DLLs from its -rez list (loose ones in the game folder are ignored), so the "AVP2VR" launchers
 rem add that folder with -rez vrrez, and its cshell.dll overrides the retail one in AVP2DLL.REZ.
+rem object.lto, cres.dll and sres.dll, built from the same 1.0.9.6 source, go with it: they override
+rem Master Server Patch 2.4's (avp2p5.rez), whose game code doesn't match the VR cshell.
 if not exist "%GAME%\vrrez" mkdir "%GAME%\vrrez"
-copy /y "%~dp0deploy\vrrez\cshell.dll" "%GAME%\vrrez\" >nul || (echo Failed to copy vrrez\cshell.dll & pause & exit /b 1)
-echo Installed vrrez\cshell.dll
+for %%f in (cshell.dll object.lto cres.dll sres.dll) do (
+	copy /y "%~dp0deploy\vrrez\%%f" "%GAME%\vrrez\" >nul || (echo Failed to copy vrrez\%%f & pause & exit /b 1)
+	echo Installed vrrez\%%f
+)
 rem Model fixes for VR (tools\normalref.py): copies of game models in the same place under vrrez,
 rem which override the game's own
 if exist "%~dp0deploy\vrrez\Models" (

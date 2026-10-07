@@ -1405,10 +1405,12 @@ void CFolderJoin::SetState(int nNewState)
 //			SetCurGameServerHandle(LTNULL);
             m_bNeedServerSorting = LTTRUE;
 
+			// The internet list came from Sierra's WON directory servers, which are gone, so it stays
+			// empty: internet games are joined by IP
 			if (m_bLANOnly)
 				GetGameSpyMgr()->RefreshLANServers();
 			else
-				GetGameSpyMgr()->RefreshServers(LTTRUE);
+				GetGameSpyMgr()->ClearServers();
 
 			// ALM (5/1/01) Having this line here was causing a crash when you are already
 			// joined in a multiplayer game, and then return to this folder.

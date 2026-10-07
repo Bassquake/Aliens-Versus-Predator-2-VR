@@ -229,18 +229,8 @@ uint32 CFolderMulti::OnCommand(uint32 dwCommand, uint32 dwParam1, uint32 dwParam
 
 		case FOLDER_CMD_MP_JOIN:
 		{
-			char szFailedMsg[256];
-
-			if(!m_GameSpyClientMgr.SetupAuthentication(szFailedMsg, 256))
-			{
-				SetDialogText_DCS(IDS_AUTH_ERROR, 0, szFailedMsg);
-				ShowDialog_DCS(LTTRUE, DCS_TYPE_OK);
-
-				m_nVerifyState = VERIFYSTATE_COMPLETE;
-
-				return 1;
-			}
-
+			// No WON authentication (see bBypass in Render): its servers are gone, so it always failed
+			// with WS_ServerReq_NoServersSpecified. Joining by IP works without it.
 			SetLogo(LOGO_SCALEFX_SIERRA);
 
 			return CBaseFolder::OnCommand(FOLDER_CMD_MP_JOIN, FOLDERJOIN_INTERNET, FOLDERJOIN_REFRESH);

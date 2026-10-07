@@ -9,6 +9,10 @@ if not defined SVR for /f "tokens=2,*" %%a in ('reg query "HKLM\SOFTWARE\WOW6432
 if defined SVR set "XR_RUNTIME_JSON=%SVR%\steamxr_win32.json"
 if not defined SVR echo SteamVR was not found; using the system's active OpenXR runtime.
 cd /d "C:\Program Files (x86)\Fox\Aliens vs. Predator 2"
+rem Render resolution: xrres.exe sets dgVoodoo's forced resolution (both eyes side by side) to the runtime's
+rem recommended per-eye size (SteamVR's render resolution) times avp2xr.ini RenderScale, in the VirtualStore
+rem copy of dgVoodoo.conf the game reads. If it can't (headset asleep), the last resolution stays.
+if exist xrres.exe xrres.exe
 rem The display mode from avp2xr.ini [VR] GameResolution (e.g. 640x480x32), whatever the original
 rem launcher (AVP2.exe) last saved: the command line overrides autoexec.cfg
 set RES=
@@ -17,9 +21,9 @@ for /f "tokens=1,* delims==" %%a in ('findstr /b /i /c:"GameResolution=" "avp2xr
 if defined RES for /f "tokens=1-3 delims=x " %%w in ("%RES%x32") do set "RESARGS=+ScreenWidth %%w +ScreenHeight %%x +BitDepth %%y"
 rem The -rez list the engine loads cres.dll/cshell.dll from is in avp2cmds.txt, which the launcher (AVP2.exe)
 rem writes the first time its Play button is used, into VirtualStore when it isn't elevated (lithtech.exe
-rem reads that copy first, cmd doesn't see it, so look there explicitly). Its line is passed on the command
-rem line without Master Server Patch 2.4's avp2p5.rez: that holds the patch's cshell.dll/object.lto, and its
-rem object.lto (game code for local servers) doesn't match the 1.0.9.6 source the VR cshell is built from.
+rem reads that copy first, cmd doesn't see it, so look there explicitly). Master Server Patch 2.4's
+rem avp2p5.rez in it is fine: its maps and art are used, and vrrez (last, so it wins) replaces its
+rem cshell.dll, object.lto, cres.dll and sres.dll with ones built from the 1.0.9.6 source.
 rem Without avp2cmds.txt the engine finds no resources ("Error copying file cres.dll"), so fall back to the
 rem launcher's default list, keeping only the .rez files/folders that exist.
 set "CMDFILE=%LOCALAPPDATA%\VirtualStore\Program Files (x86)\Fox\Aliens vs. Predator 2\avp2cmds.txt"
@@ -28,8 +32,7 @@ set CMDARGS=
 if exist "%CMDFILE%" for /f "usebackq delims=" %%l in ("%CMDFILE%") do set "CMDARGS=%%l"
 if defined CMDARGS goto havecmds
 set REZ=
-for %%r in (AVP2.rez sounds.rez Alien.rez Marine.rez Predator.rez Multi.rez AVP2dll.rez AVP2l.rez custom AVP2p.rez AVP2p2.rez AVP2P1.rez) do if exist "%%r" call set "REZ=%%REZ%% -rez %%r"
+for %%r in (AVP2.rez sounds.rez Alien.rez Marine.rez Predator.rez Multi.rez AVP2dll.rez AVP2l.rez custom AVP2p.rez AVP2p2.rez AVP2P1.rez AVP2P5.rez) do if exist "%%r" call set "REZ=%%REZ%% -rez %%r"
 set CMDARGS=-windowtitle "Aliens vs. Predator 2"%REZ% +DisableMusic 0 +DisableSound 0 +DisableMovies 1 +EnableTripBuf 1 +DisableHardwareCursor 0
 :havecmds
-set "CMDARGS=%CMDARGS:-rez avp2p5.rez=%"
 start "" lithtech.exe %CMDARGS% -rez vrrez %RESARGS% +VREnable 0

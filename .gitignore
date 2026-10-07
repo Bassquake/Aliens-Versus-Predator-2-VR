@@ -16,6 +16,7 @@
 
 # Build results
 *.lto
+!proj/avp2xr/deploy/vrrez/object.lto
 
 # Visual Studio state
 .vs/
