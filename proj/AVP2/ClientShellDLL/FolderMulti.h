@@ -11,6 +11,7 @@
 
 #include "BaseFolder.h"
 #include "GameSpyClientMgr.h"
+#include "MasterServerList.h"
 
 
 #define CDKEY_STRING_SIZE			64
@@ -41,6 +42,7 @@ class CFolderMulti : public CBaseFolder
 	public:
 
 		CGameSpyClientMgr* GetGameSpyMgr()		{ return &m_GameSpyClientMgr; }
+		CMasterServerClientMgr* GetMasterMgr()	{ return &m_GameSpyClientMgr; }
 
 		void	JoinGameSpyArcadeServer();
 
@@ -133,7 +135,7 @@ class CFolderMulti : public CBaseFolder
 
 
 		// The main access to the WON API... yes, yes I know it's called 'GameSpy'!
-		CGameSpyClientMgr	m_GameSpyClientMgr;
+		CMasterServerClientMgr	m_GameSpyClientMgr;	// the internet list from the AvP2 master server
 
 
 		// Some state variables for the menu so we can pace everything

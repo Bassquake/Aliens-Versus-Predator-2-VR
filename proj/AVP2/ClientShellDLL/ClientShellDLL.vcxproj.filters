@@ -89,6 +89,9 @@
     <ClCompile Include="LTTextWnd.cpp">
       <Filter>Source\Interface Source</Filter>
     </ClCompile>
+    <ClCompile Include="MasterServerList.cpp">
+      <Filter>Source\Interface Source</Filter>
+    </ClCompile>
     <ClCompile Include="LtWnd.cpp">
       <Filter>Source\Interface Source</Filter>
     </ClCompile>
@@ -653,6 +656,9 @@
       <Filter>Headers\Interface Headers</Filter>
     </ClInclude>
     <ClInclude Include="LTTextWnd.h">
+      <Filter>Headers\Interface Headers</Filter>
+    </ClInclude>
+    <ClInclude Include="MasterServerList.h">
       <Filter>Headers\Interface Headers</Filter>
     </ClInclude>
     <ClInclude Include="LtWnd.h">

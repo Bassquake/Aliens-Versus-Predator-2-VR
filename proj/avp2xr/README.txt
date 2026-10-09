@@ -130,6 +130,16 @@ Markers (API version 11)
   over the eyes at the headset's resolution (DrawMarkers: turned quads, scissored to the eye), under the
   crosshair. With an older proxy cshell draws them into the eyes itself, in the game's pixels (blocky).
 
+Internet server list
+  The game's own list came from Sierra's WON servers (gone since 2004), as did its CD key check, so
+  the multiplayer menu skips those checks (FolderMulti.cpp). The Join Internet list comes from the AvP2
+  community's master server instead (MasterServerList.cpp, on a thread): master.avp2msp.com:28900
+  greets with "100...", and "001" gets "101" 0x01 <count> 0x01 then <count> lines of "ip:port". Each
+  is given to the game's GameSpy list (ServerListAuxUpdate), which queries it (\status\) and the Join
+  screen shows and joins them as before. Master Server Patch 2.4 servers may still not accept this
+  client: they verify clients in a way only the patch's own cshell.dll does.
+  test\gstest.cpp checks the GameSpy library half on its own (build_gstest.bat).
+
 Gamma
   avp2xr.ini Gamma (default 1 = off): the proxy copies the stereo frame and draws it back through
   pow(colour, 1/Gamma) before the crosshair and the copy to the headset (ApplyGamma), so above 1 lifts the

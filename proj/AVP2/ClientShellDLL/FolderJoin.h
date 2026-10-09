@@ -54,6 +54,7 @@ class CFolderJoin : public CBaseFolder
 		void	JoinServer(CGameSpyServer *pGame, const char *szPassword = LTNULL);
 
 		CGameSpyClientMgr* GetGameSpyMgr();
+		class CMasterServerClientMgr* GetMasterMgr();
 
 	protected:
  

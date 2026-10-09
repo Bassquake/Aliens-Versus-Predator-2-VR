@@ -194,6 +194,12 @@ CGameSpyClientMgr* CFolderJoin::GetGameSpyMgr()
 	return pMulti->GetGameSpyMgr();
 }
 
+CMasterServerClientMgr* CFolderJoin::GetMasterMgr()
+{
+	CFolderMulti *pMulti = (CFolderMulti*)m_pFolderMgr->GetFolderFromID(FOLDER_ID_MULTI);
+	return pMulti->GetMasterMgr();
+}
+
 
 // Build the folder
 LTBOOL CFolderJoin::Build()
@@ -420,6 +426,13 @@ LTBOOL CFolderJoin::Build()
 
 void CFolderJoin::Escape()
 {
+	// Stop waiting for the internet list (UpdateGetServices then finishes with what there is)
+	if(GetMasterMgr()->IsFetchingMasterList())
+	{
+		GetMasterMgr()->CancelMasterList();
+		return;
+	}
+
 	if(GetGameSpyMgr()->GetState() != sl_idle)
 	{
 		GetGameSpyMgr()->KillGetServersOp();
@@ -1171,6 +1184,16 @@ void CFolderJoin::UpdateDummyStatus(HSURFACE hDestSurf)
 
 void CFolderJoin::UpdateGetServices(HSURFACE hDestSurf)
 {
+	// While the internet list is on its way the GameSpy list is idle: wait for it (it then gives
+	// the list its servers to query)
+	if (!m_bLANOnly && GetMasterMgr()->UpdateMasterList() == CMasterServerClientMgr::MASTER_FETCHING)
+	{
+		HSTRING hStr = g_pLTClient->FormatString(IDS_STATUS_GETLIST);
+		SetStatusText(hStr);
+		g_pLTClient->FreeString(hStr);
+		return;
+	}
+
 	int nState = GetGameSpyMgr()->GetState();
 
 
@@ -1405,12 +1428,12 @@ void CFolderJoin::SetState(int nNewState)
 //			SetCurGameServerHandle(LTNULL);
             m_bNeedServerSorting = LTTRUE;
 
-			// The internet list came from Sierra's WON directory servers, which are gone, so it stays
-			// empty: internet games are joined by IP
+			// The internet list came from Sierra's WON directory servers, which are gone: it comes
+			// from the AvP2 community's master server instead (MasterServerList.h)
 			if (m_bLANOnly)
 				GetGameSpyMgr()->RefreshLANServers();
 			else
-				GetGameSpyMgr()->ClearServers();
+				GetMasterMgr()->StartMasterList();
 
 			// ALM (5/1/01) Having this line here was causing a crash when you are already
 			// joined in a multiplayer game, and then return to this folder.

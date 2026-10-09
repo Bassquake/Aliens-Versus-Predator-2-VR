@@ -279,6 +279,7 @@ copy /Y "$(TargetPath)" "$(AVP2_BUILD_DIR)\cshell.dll"</Command>
     <ClCompile Include="LTDialogueWnd.cpp" />
     <ClCompile Include="LTMaskedWnd.cpp" />
     <ClCompile Include="LTTextWnd.cpp" />
+    <ClCompile Include="MasterServerList.cpp" />
     <ClCompile Include="LtWnd.cpp" />
     <ClCompile Include="MessageBox.cpp" />
     <ClCompile Include="TeleType.cpp" />
@@ -473,6 +474,7 @@ copy /Y "$(TargetPath)" "$(AVP2_BUILD_DIR)\cshell.dll"</Command>
     <ClInclude Include="LTDialogueWnd.h" />
     <ClInclude Include="LTMaskedWnd.h" />
     <ClInclude Include="LTTextWnd.h" />
+    <ClInclude Include="MasterServerList.h" />
     <ClInclude Include="LtWnd.h" />
     <ClInclude Include="MessageBox.h" />
     <ClInclude Include="TeleType.h" />
