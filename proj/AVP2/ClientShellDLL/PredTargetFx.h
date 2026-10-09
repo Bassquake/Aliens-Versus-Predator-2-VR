@@ -41,6 +41,7 @@ class CPredTargetSFX : public CSpecialFX
 			m_ePhase			= TP_LOCKING_0;
 			m_fTime				= 0.0f;
 			m_hLockSound		= LTNULL;
+			m_nMarkerEye		= -1;
 			memset(m_hTargetingImage, 0, sizeof(HSURFACE)*3);
 		}
 		~CPredTargetSFX()
@@ -60,12 +61,27 @@ class CPredTargetSFX : public CSpecialFX
 		LTBOOL			Update();
 		LTBOOL			CreateObject(CClientDE* pClientDE);
 		TargetPhase	UpdatePhase();
-		void			DrawLockingTris();
 
 		void	WantRemove(LTBOOL bRemove=DTRUE);
 		void	PostRenderDraw();
 
+		// VR: the target triangles drawn into each eye's view at the target (see VRMgr::DrawEyeOverlays);
+		// PostRenderDraw then leaves them off the HUD
+		void	DrawInEyes();
+
+		// VR: makes avp2xr's copies of the images now (about 70 ms each, reading the pixels one at a
+		// time), so the first lock doesn't hitch. Called when the player becomes a Predator.
+		static void	PreloadVRImages();
+
 	private :
+		// Draws the triangles in rView (the screen, or one eye's part of it) with the target at
+		// fX, fY and the images fScaleX, fScaleY times their flat-screen size
+		void	DrawAt(const LTRect &rView, LTFLOAT fX, LTFLOAT fY, LTFLOAT fScaleX, LTFLOAT fScaleY);
+		void	DrawLockingTris(const LTRect &rView, LTFLOAT fX, LTFLOAT fY, LTFLOAT fScaleX, LTFLOAT fScaleY);
+		void	DrawClipped(int nImage, LTFLOAT fCX, LTFLOAT fCY, LTFLOAT fHalfW, LTFLOAT fHalfH, const LTRect &rView);
+
+		int		m_nMarkerEye;	// VR with avp2xr 11 on: the eye DrawAt is giving avp2xr markers for, else -1 (drawn here)
+
 		HSURFACE	m_hLockedImage;
 		HSURFACE	m_hTargetingImage[3];
 		HSURFACE	m_hImage;

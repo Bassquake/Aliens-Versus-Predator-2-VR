@@ -107,7 +107,8 @@ struct SmoothImage
 {
 	char		szName[128];
 	uint32		nTint;				// RGB every visible pixel is drawn in (the solid-colour crosshairs), 0 = its own
-	HSURFACE	hSurface;
+	HSURFACE	hSurface;			// the smoothed copy, made by GetSmoothImage (LTNULL until then, or if it failed)
+	LTBOOL		bTriedSurface;		// ...which it has tried
 	uint32		nWidth, nHeight;	// the original's size
 	uint32		*pRaw;				// the original's pixels as 0xAARRGGBB (black see-through), for avp2xr
 	uint32		*pSmooth;			// ...and the smoothed copy's (4x the size)
@@ -144,12 +145,10 @@ static uint32 *WithAlpha(const uint32 *p, uint32 n)
 	return pOut;
 }
 
-static HSURFACE BuildSmoothImage(HSURFACE hSrc, uint32 w, uint32 h, uint32 nTint, SmoothImage &img)
+// The pixels: the original's and the smoothed copy's, as 0xAARRGGBB (what avp2xr takes)
+static void BuildSmoothPixels(HSURFACE hSrc, uint32 w, uint32 h, uint32 nTint, SmoothImage &img)
 {
-	HSURFACE hDst = g_pLTClient->CreateSurface(w * 4, h * 4);
-	if(!hDst)
-		return LTNULL;
-
+	uint32 nStart = GetTickCount();
 	uint32 *p1 = new uint32[w * h];
 	uint32 *p2 = new uint32[w * h * 4];
 	uint32 *p4 = new uint32[w * h * 16];
@@ -164,16 +163,28 @@ static HSURFACE BuildSmoothImage(HSURFACE hSrc, uint32 w, uint32 h, uint32 nTint
 		}
 	Scale2x(p1, w, h, p2);
 	Scale2x(p2, w * 2, h * 2, p4);
-	for(uint32 Y = 0; Y < h * 4; Y++)
-		for(uint32 X = 0; X < w * 4; X++)
-			g_pLTClient->SetPixel(hDst, X, Y, p4[Y * w * 4 + X]);
 	img.pRaw = WithAlpha(p1, w * h);
 	img.pSmooth = WithAlpha(p4, w * h * 16);
 	delete[] p1;
 	delete[] p2;
 	delete[] p4;
+	VRLog("Smoothed image %s (%ux%u): %u ms", img.szName, w, h, GetTickCount() - nStart);
+}
 
+// The smoothed copy as a surface, for the game to draw (without avp2xr 10's crosshair). Made only
+// when that's wanted: a SetPixel per pixel is slow (about 1.2 s for a 128 x 128 image, 16 times the pixels)
+static HSURFACE BuildSmoothSurface(const SmoothImage &img)
+{
+	uint32 w = img.nWidth * 4, h = img.nHeight * 4;
+	HSURFACE hDst = g_pLTClient->CreateSurface(w, h);
+	if(!hDst)
+		return LTNULL;
+	uint32 nStart = GetTickCount();
+	for(uint32 Y = 0; Y < h; Y++)
+		for(uint32 X = 0; X < w; X++)
+			g_pLTClient->SetPixel(hDst, X, Y, img.pSmooth[Y * w + X] & 0xFFFFFF);
 	g_pLTClient->OptimizeSurface(hDst, SETRGB_T(0, 0, 0));
+	VRLog("Smoothed surface %s (%ux%u): %u ms", img.szName, w, h, GetTickCount() - nStart);
 	return hDst;
 }
 
@@ -198,14 +209,21 @@ static SmoothImage *FindSmoothImage(const char *szName, HSURFACE hSrc, uint32 nT
 	img.nHeight = h;
 	img.nTint = nTint;
 	img.pRaw = img.pSmooth = LTNULL;
+	img.hSurface = LTNULL;
+	img.bTriedSurface = LTFALSE;
 	img.nId = s_nNextSmoothId++;
-	img.hSurface = BuildSmoothImage(hSrc, w, h, nTint, img);
+	BuildSmoothPixels(hSrc, w, h, nTint, img);
 	return &img;
 }
 
 static HSURFACE GetSmoothImage(const char *szName, HSURFACE hSrc, uint32 nTint)
 {
 	SmoothImage *pImg = FindSmoothImage(szName, hSrc, nTint);
+	if(pImg && !pImg->bTriedSurface)
+	{
+		pImg->bTriedSurface = LTTRUE;
+		pImg->hSurface = BuildSmoothSurface(*pImg);
+	}
 	return pImg && pImg->hSurface ? pImg->hSurface : hSrc;
 }
 
@@ -368,6 +386,20 @@ LTBOOL CCrosshairMgr::GetVRCrosshairImage(LTBOOL bSmooth, const uint32 *&pPixels
 		fHalfH = m_nHalfXhairHeight * m_fScale;
 		fAlpha = m_fCrosshairAlpha;
 	}
+	if(!pImg || !pImg->pRaw || !pImg->pSmooth)
+		return LTFALSE;
+
+	pPixels = bSmooth ? pImg->pSmooth : pImg->pRaw;
+	nWidth = bSmooth ? pImg->nWidth * 4 : pImg->nWidth;
+	nHeight = bSmooth ? pImg->nHeight * 4 : pImg->nHeight;
+	nId = pImg->nId * 2 + (bSmooth ? 1 : 0);
+	return LTTRUE;
+}
+
+LTBOOL CCrosshairMgr::GetVRImage(const char *szName, HSURFACE hSurface, LTBOOL bSmooth, const uint32 *&pPixels,
+								 uint32 &nWidth, uint32 &nHeight, uint32 &nId)
+{
+	SmoothImage *pImg = FindSmoothImage(szName, hSurface, 0);
 	if(!pImg || !pImg->pRaw || !pImg->pSmooth)
 		return LTFALSE;
 

@@ -74,6 +74,8 @@ char* CommandName(int nCommand);
 HSURFACE CropSurface(HSURFACE hSurf, HDECOLOR hBorderColor);
 
 LTBOOL GetScreenPos(HCAMERA hCamera, HOBJECT hObj, LTIntPt &ptRval, LTBOOL bTargetTorso=LTFALSE);
+// The world point of hObj that GetScreenPos finds on the screen (the torso node, else mid-body)
+LTVector GetScreenTargetPos(HOBJECT hObj, LTBOOL bTargetTorso=LTFALSE);
 
 
 DBOOL GetAttachmentSocketTransform(HOBJECT hObj, char* pSocketName, DVector & vPos, DRotation & rRot);

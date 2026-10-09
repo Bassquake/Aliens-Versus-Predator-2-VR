@@ -70,6 +70,9 @@ public:
 	// see-through; nId changes when it does), its half size on the flat screen, and its alpha
 	LTBOOL		GetVRCrosshairImage(LTBOOL bSmooth, const uint32 *&pPixels, uint32 &nWidth, uint32 &nHeight, uint32 &nId,
 									LTFLOAT &fHalfW, LTFLOAT &fHalfH, LTFLOAT &fAlpha) const;
+	// Any interface image (szName its file, for the cache) the same way, for avp2xr's markers
+	static LTBOOL GetVRImage(const char *szName, HSURFACE hSurface, LTBOOL bSmooth, const uint32 *&pPixels,
+							 uint32 &nWidth, uint32 &nHeight, uint32 &nId);
 
 private:
 

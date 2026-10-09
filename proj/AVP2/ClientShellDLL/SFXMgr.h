@@ -77,6 +77,7 @@ class CSFXMgr
 		void OnModelKey(HLOCALOBJ hObj, ArgList *pArgs);
 		void OnSFXMessage(HMESSAGEREAD hMessage);
 		void PostRenderDraw();
+		void PostRenderDrawInEyes();	// in stereo, into each eye's view (see VRMgr::DrawEyeOverlays)
 		const std::string GetMode() { return m_szMode; }
 
 	private :

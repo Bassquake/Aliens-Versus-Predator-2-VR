@@ -315,6 +315,17 @@ static Avp2XrCrosshair g_crosshairs[2];  // for the begun frame; drawn into the 
 static unsigned int* g_crosshairPixels;  // the latest SetCrosshairImage
 static int g_crosshairWidth, g_crosshairHeight;
 static bool g_crosshairImageNew;         // not in the texture yet
+struct MarkerImage
+{
+	unsigned int* pixels;  // the latest SetMarkerImage
+	int width, height;
+	bool isNew;            // not in the texture yet
+	ID3D11Texture2D* texture;
+	ID3D11ShaderResourceView* srv;
+};
+static MarkerImage g_markerImages[AVP2XR_MAX_MARKER_IMAGES];
+static Avp2XrMarker g_markers[AVP2XR_MAX_MARKERS];  // for the begun frame; drawn into the eyes at their flip
+static int g_markerCount;
 
 static int g_recenterCount;           // LOCAL space recenters that have taken effect (not reset with the session)
 static XrTime g_recenterPendingTime;  // when a pending recenter takes effect; 0 if none
@@ -800,6 +811,7 @@ static bool BeginXrFrame()
 	}
 	g_frameBegun = true;
 	g_viewsValid = g_stereoSubmitted = false;
+	g_markerCount = 0;
 	UpdateInput();
 
 	if (g_recenterPendingTime && g_frameState.predictedDisplayTime >= g_recenterPendingTime)
@@ -1713,8 +1725,39 @@ static void __cdecl Api_SubmitCrosshairs(const Avp2XrCrosshair crosshairs[2])
 	g_crosshairs[1] = crosshairs[1];
 }
 
+static void __cdecl Api_SetMarkerImage(int image, int width, int height, const unsigned int* pixels)
+{
+	if (image < 0 || image >= AVP2XR_MAX_MARKER_IMAGES)
+		return;
+	unsigned int* copy = nullptr;
+	if (pixels && width > 0 && height > 0 && width <= 1024 && height <= 1024)
+	{
+		copy = (unsigned int*)malloc((size_t)width * height * 4);
+		if (!copy)
+			return;
+		memcpy(copy, pixels, (size_t)width * height * 4);
+	}
+	MarkerImage& m = g_markerImages[image];
+	free(m.pixels);
+	m.pixels = copy;
+	m.width = copy ? width : 0;
+	m.height = copy ? height : 0;
+	m.isNew = true;
+}
+
+static void __cdecl Api_SubmitMarkers(const Avp2XrMarker* markers, int count)
+{
+	g_markerCount = 0;
+	if (!g_frameBegun || !g_viewsValid || !markers || count <= 0)
+		return;
+	if (count > AVP2XR_MAX_MARKERS)
+		count = AVP2XR_MAX_MARKERS;
+	memcpy(g_markers, markers, count * sizeof(Avp2XrMarker));
+	g_markerCount = count;
+}
+
 static const Avp2XrApi g_api = { AVP2XR_API_VERSION, Api_BeginStereoFrame, Api_SubmitStereo, Api_SetGameResolution, Api_GetInput,
-	Api_SetCrosshairImage, Api_SubmitCrosshairs };
+	Api_SetCrosshairImage, Api_SubmitCrosshairs, Api_SetMarkerImage, Api_SubmitMarkers };
 
 extern "C" const Avp2XrApi* __cdecl avp2xr_GetApi()
 {
@@ -2598,6 +2641,33 @@ static ID3D11Texture2D* g_crosshairTexture;
 static ID3D11ShaderResourceView* g_crosshairSrv;
 static bool g_crosshairBroken;  // setup failed once; no crosshair from then on
 
+// Markers (API version 11) are drawn the same way, but turned: the vertex shader takes the quad's
+// corners (clip space) from the constant buffer instead of filling the viewport. They share the
+// crosshair's sampler, blend and scissored rasterizer state.
+static const char g_markerShaderSource[] =
+	"Texture2D image : register(t0);\n"
+	"SamplerState linearClamp : register(s0);\n"
+	"cbuffer Params : register(b0) { float4 alpha; float4 corners01; float4 corners23; };\n"
+	"struct VSOut { float4 pos : SV_Position; float2 uv : TEXCOORD0; };\n"
+	"VSOut VSMain(uint id : SV_VertexID)\n"
+	"{\n"
+	"	float2 t = float2(id & 1, id >> 1);\n"  // a strip of 4: top-left, top-right, bottom-left, bottom-right
+	"	float2 c = id == 0 ? corners01.xy : id == 1 ? corners01.zw : id == 2 ? corners23.xy : corners23.zw;\n"
+	"	VSOut o;\n"
+	"	o.pos = float4(c, 0, 1);\n"
+	"	o.uv = t;\n"
+	"	return o;\n"
+	"}\n"
+	"float4 PSMain(VSOut i) : SV_Target\n"
+	"{\n"
+	"	return image.Sample(linearClamp, i.uv) * alpha.x;\n"  // premultiplied
+	"}\n";
+
+static ID3D11VertexShader* g_markerVs;
+static ID3D11PixelShader* g_markerPs;
+static ID3D11Buffer* g_markerParams;
+static bool g_markerBroken;  // setup failed once; no markers from then on
+
 static void DestroyCrosshair()
 {
 	SafeRelease(g_crosshairSrv);
@@ -2610,6 +2680,16 @@ static void DestroyCrosshair()
 	SafeRelease(g_crosshairVs);
 	g_crosshairBroken = false;
 	g_crosshairImageNew = g_crosshairPixels != nullptr;
+	for (MarkerImage& m : g_markerImages)
+	{
+		SafeRelease(m.srv);
+		SafeRelease(m.texture);
+		m.isNew = m.pixels != nullptr;
+	}
+	SafeRelease(g_markerParams);
+	SafeRelease(g_markerPs);
+	SafeRelease(g_markerVs);
+	g_markerBroken = false;
 }
 
 static bool CreateCrosshairPipeline()
@@ -2669,25 +2749,55 @@ static bool CreateCrosshairPipeline()
 	return ok;
 }
 
-// Puts a new SetCrosshairImage into the texture (premultiplied, with mipmaps for when it's drawn
-// smaller than it is). False if there's no image.
-static bool UpdateCrosshairTexture()
+static bool CreateMarkerPipeline()
 {
-	if (!g_crosshairImageNew)
-		return g_crosshairSrv != nullptr;
-	g_crosshairImageNew = false;
-	SafeRelease(g_crosshairSrv);
-	SafeRelease(g_crosshairTexture);
-	if (!g_crosshairPixels)
+	HMODULE compiler = LoadLibraryW(L"d3dcompiler_47.dll");
+	pD3DCompile compile = compiler ? (pD3DCompile)GetProcAddress(compiler, "D3DCompile") : nullptr;
+	if (!compile)
 		return false;
 
-	int w = g_crosshairWidth, h = g_crosshairHeight;
+	ID3DBlob* vs = nullptr;
+	ID3DBlob* ps = nullptr;
+	ID3DBlob* errors = nullptr;
+	bool ok = false;
+	if (FAILED(compile(g_markerShaderSource, sizeof(g_markerShaderSource) - 1, "avp2xr_marker", nullptr, nullptr, "VSMain", "vs_4_0", 0, 0, &vs, &errors)) ||
+		FAILED(compile(g_markerShaderSource, sizeof(g_markerShaderSource) - 1, "avp2xr_marker", nullptr, nullptr, "PSMain", "ps_4_0", 0, 0, &ps, &errors)))
+	{
+		Log("Markers: shader compile failed: %s", errors ? (const char*)errors->GetBufferPointer() : "?");
+	}
+	else if (FAILED(g_device->CreateVertexShader(vs->GetBufferPointer(), vs->GetBufferSize(), nullptr, &g_markerVs)) ||
+		FAILED(g_device->CreatePixelShader(ps->GetBufferPointer(), ps->GetBufferSize(), nullptr, &g_markerPs)))
+	{
+		Log("Markers: shader creation failed");
+	}
+	else
+	{
+		D3D11_BUFFER_DESC bd = {};
+		bd.ByteWidth = 48;
+		bd.Usage = D3D11_USAGE_DEFAULT;
+		bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
+		if (FAILED(g_device->CreateBuffer(&bd, nullptr, &g_markerParams)))
+			Log("Markers: constant buffer creation failed");
+		else
+			ok = true;
+	}
+	SafeRelease(vs);
+	SafeRelease(ps);
+	SafeRelease(errors);
+	return ok;
+}
+
+// A game image (0xAARRGGBB) as a texture: premultiplied, with mipmaps for when it's drawn smaller
+// than it is
+static bool CreateImageTexture(const unsigned int* pixels, int w, int h, const char* what,
+	ID3D11Texture2D*& texture, ID3D11ShaderResourceView*& srv)
+{
 	unsigned int* data = (unsigned int*)malloc((size_t)w * h * 4);
 	if (!data)
 		return false;
 	for (int i = 0; i < w * h; ++i)
 	{
-		unsigned int c = g_crosshairPixels[i], a = c >> 24;
+		unsigned int c = pixels[i], a = c >> 24;
 		unsigned int r = ((c >> 16) & 255) * a / 255, g = ((c >> 8) & 255) * a / 255, b = (c & 255) * a / 255;
 		data[i] = (a << 24) | (r << 16) | (g << 8) | b;
 	}
@@ -2701,22 +2811,50 @@ static bool UpdateCrosshairTexture()
 	td.Usage = D3D11_USAGE_DEFAULT;
 	td.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
 	td.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
-	bool ok = SUCCEEDED(g_device->CreateTexture2D(&td, nullptr, &g_crosshairTexture)) &&
-		SUCCEEDED(g_device->CreateShaderResourceView(g_crosshairTexture, nullptr, &g_crosshairSrv));
+	bool ok = SUCCEEDED(g_device->CreateTexture2D(&td, nullptr, &texture)) &&
+		SUCCEEDED(g_device->CreateShaderResourceView(texture, nullptr, &srv));
 	if (ok)
 	{
-		g_context->UpdateSubresource(g_crosshairTexture, 0, nullptr, data, w * 4, 0);
-		g_context->GenerateMips(g_crosshairSrv);
-		Log("Crosshair: image %dx%d", w, h);
+		g_context->UpdateSubresource(texture, 0, nullptr, data, w * 4, 0);
+		g_context->GenerateMips(srv);
+		Log("%s: image %dx%d", what, w, h);
 	}
 	else
 	{
-		Log("Crosshair: can't create a %dx%d texture", w, h);
-		SafeRelease(g_crosshairSrv);
-		SafeRelease(g_crosshairTexture);
+		Log("%s: can't create a %dx%d texture", what, w, h);
+		SafeRelease(srv);
+		SafeRelease(texture);
 	}
 	free(data);
 	return ok;
+}
+
+// Puts a new SetMarkerImage into its texture. False if there's no image.
+static bool UpdateMarkerTexture(int image)
+{
+	MarkerImage& m = g_markerImages[image];
+	if (!m.isNew)
+		return m.srv != nullptr;
+	m.isNew = false;
+	SafeRelease(m.srv);
+	SafeRelease(m.texture);
+	char what[32];
+	sprintf_s(what, "Marker %d", image);
+	return m.pixels && CreateImageTexture(m.pixels, m.width, m.height, what, m.texture, m.srv);
+}
+
+// Puts a new SetCrosshairImage into the texture (premultiplied, with mipmaps for when it's drawn
+// smaller than it is). False if there's no image.
+static bool UpdateCrosshairTexture()
+{
+	if (!g_crosshairImageNew)
+		return g_crosshairSrv != nullptr;
+	g_crosshairImageNew = false;
+	SafeRelease(g_crosshairSrv);
+	SafeRelease(g_crosshairTexture);
+	if (!g_crosshairPixels)
+		return false;
+	return CreateImageTexture(g_crosshairPixels, g_crosshairWidth, g_crosshairHeight, "Crosshair", g_crosshairTexture, g_crosshairSrv);
 }
 
 // ----------------------------------------------------------------------- //
@@ -2946,6 +3084,94 @@ static void DrawCrosshairs(IDXGISwapChain* sc)
 	backBuffer->Release();
 }
 
+// Draws the markers the game gave for this frame over the eyes in the back buffer (under the crosshair)
+static void DrawMarkers(IDXGISwapChain* sc)
+{
+	int count = g_markerCount;
+	g_markerCount = 0;
+	if (!count || g_markerBroken || g_crosshairBroken)
+		return;
+	if (((!g_hudState || !g_context1) && !CreateHudPipeline()) || (!g_crosshairVs && !CreateCrosshairPipeline()) ||
+		(!g_markerVs && !CreateMarkerPipeline()))
+	{
+		Log("Markers: can't be drawn");
+		SafeRelease(g_markerParams);
+		SafeRelease(g_markerPs);
+		SafeRelease(g_markerVs);
+		g_markerBroken = true;
+		return;
+	}
+
+	ID3D11Texture2D* backBuffer = nullptr;
+	if (FAILED(sc->GetBuffer(0, IID_PPV_ARGS(&backBuffer))))
+		return;
+	D3D11_TEXTURE2D_DESC bb;
+	backBuffer->GetDesc(&bb);
+	ID3D11RenderTargetView* rtv = nullptr;
+	if (bb.SampleDesc.Count != 1 || !(bb.BindFlags & D3D11_BIND_RENDER_TARGET) || FAILED(g_device->CreateRenderTargetView(backBuffer, nullptr, &rtv)))
+	{
+		Log("Markers: the back buffer can't be drawn to (samples %u, bind flags %x)", bb.SampleDesc.Count, bb.BindFlags);
+		g_markerBroken = true;
+		backBuffer->Release();
+		return;
+	}
+	static bool logged;
+	if (!logged)
+	{
+		logged = true;
+		Log("Markers: drawn at the headset's resolution");
+	}
+
+	ID3DDeviceContextState* previous = nullptr;
+	g_context1->SwapDeviceContextState(g_hudState, &previous);
+	g_context1->OMSetRenderTargets(1, &rtv, nullptr);
+	g_context1->OMSetBlendState(g_crosshairBlend, nullptr, 0xffffffff);
+	g_context1->RSSetState(g_crosshairRaster);
+	g_context1->IASetInputLayout(nullptr);
+	g_context1->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP);
+	g_context1->VSSetShader(g_markerVs, nullptr, 0);
+	g_context1->PSSetShader(g_markerPs, nullptr, 0);
+	g_context1->PSSetSamplers(0, 1, &g_crosshairSampler);
+	g_context1->VSSetConstantBuffers(0, 1, &g_markerParams);
+	g_context1->PSSetConstantBuffers(0, 1, &g_markerParams);
+	float bw = (float)bb.Width, bh = (float)bb.Height;
+	D3D11_VIEWPORT vp = { 0.0f, 0.0f, bw, bh, 0.0f, 1.0f };
+	g_context1->RSSetViewports(1, &vp);
+	for (int i = 0; i < count; ++i)
+	{
+		const Avp2XrMarker& m = g_markers[i];
+		if (m.eye < 0 || m.eye > 1 || m.image < 0 || m.image >= AVP2XR_MAX_MARKER_IMAGES ||
+			m.halfSize[0] <= 0.0f || m.halfSize[1] <= 0.0f || !UpdateMarkerTexture(m.image))
+			continue;
+		// The corners turned in back buffer pixels (near enough square in the headset), then to clip space
+		float cx = m.center[0] * bw, cy = m.center[1] * bh, hx = m.halfSize[0] * bw, hy = m.halfSize[1] * bh;
+		float cs = cosf(m.angle), sn = sinf(m.angle);
+		float params[12] = { m.alpha < 0.0f ? 0.0f : m.alpha > 1.0f ? 1.0f : m.alpha, 0.0f, 0.0f, 0.0f };
+		for (int k = 0; k < 4; ++k)
+		{
+			float x = (k & 1) ? hx : -hx, y = (k >> 1) ? hy : -hy;  // top-left, top-right, bottom-left, bottom-right
+			float px = cx + x * cs - y * sn, py = cy + x * sn + y * cs;
+			params[4 + k * 2] = px / bw * 2.0f - 1.0f;
+			params[5 + k * 2] = 1.0f - py / bh * 2.0f;
+		}
+		const float* r = g_eyeSubmit[m.eye].rect;
+		D3D11_RECT eyeRect = { (LONG)(r[0] * bw + 0.5f), (LONG)(r[1] * bh + 0.5f), (LONG)((r[0] + r[2]) * bw + 0.5f), (LONG)((r[1] + r[3]) * bh + 0.5f) };
+		g_context1->UpdateSubresource(g_markerParams, 0, nullptr, params, 0, 0);
+		g_context1->RSSetScissorRects(1, &eyeRect);
+		g_context1->PSSetShaderResources(0, 1, &g_markerImages[m.image].srv);
+		g_context1->Draw(4, 0);
+	}
+	ID3D11ShaderResourceView* noSrv = nullptr;
+	g_context1->PSSetShaderResources(0, 1, &noSrv);
+	g_context1->OMSetBlendState(nullptr, nullptr, 0xffffffff);  // the HUD capture and mirror share this state
+	g_context1->RSSetState(nullptr);
+	g_context1->OMSetRenderTargets(0, nullptr, nullptr);
+	g_context1->SwapDeviceContextState(previous, nullptr);
+	SafeRelease(previous);
+	rtv->Release();
+	backBuffer->Release();
+}
+
 static XrCompositionLayerProjectionView g_projViews[2];
 
 static void BuildProjection()
@@ -3083,6 +3309,7 @@ static PresentAction XrFrame(IDXGISwapChain* sc)
 		else
 		{
 			ApplyGamma(sc);
+			DrawMarkers(sc);
 			DrawCrosshairs(sc);
 		}
 		if (!copied)

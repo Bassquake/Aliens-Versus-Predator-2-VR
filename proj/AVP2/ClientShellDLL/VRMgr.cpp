@@ -477,6 +477,10 @@ VRMgr::VRMgr()
 	m_bMenuInput = LTFALSE;
 	m_bCrosshairHit = LTFALSE;
 	m_bCrosshairEye[0] = m_bCrosshairEye[1] = LTFALSE;
+	m_bEyeView[0] = m_bEyeView[1] = LTFALSE;
+	m_nMarkers = 0;
+	memset(m_nMarkerImageId, 0, sizeof(m_nMarkerImageId));
+	m_nNextMarkerSlot = 0;
 	m_nCrosshairImageId = 0;
 	m_bShowCrosshair = LTTRUE;
 	m_bSmoothCrosshair = LTTRUE;
@@ -668,6 +672,7 @@ LTBOOL VRMgr::FindApi()
 		{
 			m_pApi = pApi;
 			m_nCrosshairImageId = 0;
+			memset(m_nMarkerImageId, 0, sizeof(m_nMarkerImageId));
 			g_pLTClient->CPrint("VR: found avp2xr (API version %d)", pApi->version);
 
 			// Settings the game side uses, from avp2xr.ini next to the proxy
@@ -906,27 +911,112 @@ void VRMgr::ProjectCrosshair(int nEye, HCAMERA hCamera, const LTVector &vEyePos,
 							 LTFLOAT fFOVX, LTFLOAT fFOVY, const LTRect &rRect)
 {
 	m_bCrosshairEye[nEye] = LTFALSE;
-	if(hCamera != m_hPlayerCamera || !m_bCrosshairHit || !m_nScreenWidth || !m_nScreenHeight)
+	if(hCamera != m_hPlayerCamera)
 		return;
 
-	LTVector c = Rotate(rEyeRot.Conjugate(), m_vCrosshairPos - vEyePos);
+	m_bEyeView[nEye] = LTTRUE;
+	m_vEyeViewPos[nEye] = vEyePos;
+	m_rEyeViewRot[nEye] = rEyeRot;
+	m_fEyeViewFOVX[nEye] = fFOVX;
+	m_fEyeViewFOVY[nEye] = fFOVY;
+	m_rEyeViewRect[nEye] = rRect;
+
+	LTRect rEye;
+	if(!m_bCrosshairHit || !ProjectToEye(nEye, m_vCrosshairPos, m_fCrosshairX[nEye], m_fCrosshairY[nEye],
+										  m_fCrosshairScaleX[nEye], m_fCrosshairScaleY[nEye], rEye))
+		return;
+	m_nCrosshairX[nEye] = (int)m_fCrosshairX[nEye];
+	m_nCrosshairY[nEye] = (int)m_fCrosshairY[nEye];
+	m_bCrosshairEye[nEye] = m_nCrosshairX[nEye] >= rRect.left && m_nCrosshairX[nEye] < rRect.right &&
+							m_nCrosshairY[nEye] >= rRect.top && m_nCrosshairY[nEye] < rRect.bottom;
+}
+
+// ----------------------------------------------------------------------- //
+
+LTBOOL VRMgr::ProjectToEye(int nEye, const LTVector &vWorld, LTFLOAT &fX, LTFLOAT &fY,
+						   LTFLOAT &fScaleX, LTFLOAT &fScaleY, LTRect &rRect) const
+{
+	if(nEye < 0 || nEye > 1 || !m_bEyeView[nEye] || !m_nScreenWidth || !m_nScreenHeight)
+		return LTFALSE;
+
+	LTVector c = Rotate(m_rEyeViewRot[nEye].Conjugate(), vWorld - m_vEyeViewPos[nEye]);
 	if(c.z < 1.0f)
-		return;
+		return LTFALSE;
 
+	rRect = m_rEyeViewRect[nEye];
 	LTFLOAT fHalfW = (rRect.right - rRect.left) * 0.5f, fHalfH = (rRect.bottom - rRect.top) * 0.5f;
-	LTFLOAT fPixX = fHalfW / (LTFLOAT)tan(fFOVX * 0.5f);		// eye pixels per unit of tangent
-	LTFLOAT fPixY = fHalfH / (LTFLOAT)tan(fFOVY * 0.5f);
+	LTFLOAT fPixX = fHalfW / (LTFLOAT)tan(m_fEyeViewFOVX[nEye] * 0.5f);		// eye pixels per unit of tangent
+	LTFLOAT fPixY = fHalfH / (LTFLOAT)tan(m_fEyeViewFOVY[nEye] * 0.5f);
 	LTFLOAT fFlatX = m_nScreenWidth * 0.5f / (LTFLOAT)tan(MATH_DEGREES_TO_RADIANS(FOVX_NORMAL) * 0.5f);
 	LTFLOAT fFlatY = m_nScreenHeight * 0.5f / (LTFLOAT)tan(MATH_DEGREES_TO_RADIANS(FOVY_NORMAL) * 0.5f);
 
-	m_fCrosshairX[nEye] = rRect.left + fHalfW + c.x / c.z * fPixX;
-	m_fCrosshairY[nEye] = rRect.top + fHalfH - c.y / c.z * fPixY;
-	m_nCrosshairX[nEye] = (int)m_fCrosshairX[nEye];
-	m_nCrosshairY[nEye] = (int)m_fCrosshairY[nEye];
-	m_fCrosshairScaleX[nEye] = fPixX / fFlatX;
-	m_fCrosshairScaleY[nEye] = fPixY / fFlatY;
-	m_bCrosshairEye[nEye] = m_nCrosshairX[nEye] >= rRect.left && m_nCrosshairX[nEye] < rRect.right &&
-							m_nCrosshairY[nEye] >= rRect.top && m_nCrosshairY[nEye] < rRect.bottom;
+	fX = rRect.left + fHalfW + c.x / c.z * fPixX;
+	fY = rRect.top + fHalfH - c.y / c.z * fPixY;
+	fScaleX = fPixX / fFlatX;
+	fScaleY = fPixY / fFlatY;
+	return LTTRUE;
+}
+
+// ----------------------------------------------------------------------- //
+
+void VRMgr::DrawEyeOverlays()
+{
+	m_nMarkers = 0;
+	if(m_bEyeView[0] || m_bEyeView[1])
+	{
+		g_pLTClient->StartOptimized2D();
+		g_pGameClientShell->GetSFXMgr()->PostRenderDrawInEyes();
+		g_pLTClient->EndOptimized2D();
+	}
+	m_bEyeView[0] = m_bEyeView[1] = LTFALSE;
+
+	// Every frame, so ones no longer added go away
+	if(CanAddMarkers())
+		m_pApi->SubmitMarkers(m_Markers, m_nMarkers);
+	m_nMarkers = 0;
+}
+
+// ----------------------------------------------------------------------- //
+
+void VRMgr::AddMarker(const char *szImage, HSURFACE hImage, int nEye, LTFLOAT fX, LTFLOAT fY,
+					  LTFLOAT fHalfW, LTFLOAT fHalfH, LTFLOAT fAngle, LTFLOAT fAlpha)
+{
+	if(!CanAddMarkers() || m_nMarkers >= AVP2XR_MAX_MARKERS || !m_nScreenWidth || !m_nScreenHeight)
+		return;
+
+	const uint32 *pPixels = LTNULL;
+	uint32 nWidth = 0, nHeight = 0, nId = 0;
+	if(!CCrosshairMgr::GetVRImage(szImage, hImage, m_bSmoothCrosshair, pPixels, nWidth, nHeight, nId))
+		return;
+
+	// The slot avp2xr has this image in, else give it one
+	int nSlot = -1;
+	for(int i = 0; i < AVP2XR_MAX_MARKER_IMAGES && nSlot < 0; i++)
+		if(m_nMarkerImageId[i] == nId)
+			nSlot = i;
+	for(int i = 0; i < AVP2XR_MAX_MARKER_IMAGES && nSlot < 0; i++)
+		if(!m_nMarkerImageId[i])
+			nSlot = i;
+	if(nSlot < 0)
+	{
+		nSlot = m_nNextMarkerSlot;
+		m_nNextMarkerSlot = (m_nNextMarkerSlot + 1) % AVP2XR_MAX_MARKER_IMAGES;
+	}
+	if(m_nMarkerImageId[nSlot] != nId)
+	{
+		m_pApi->SetMarkerImage(nSlot, (int)nWidth, (int)nHeight, (const unsigned int *)pPixels);
+		m_nMarkerImageId[nSlot] = nId;
+	}
+
+	Avp2XrMarker &m = m_Markers[m_nMarkers++];
+	m.image = nSlot;
+	m.eye = nEye;
+	m.center[0] = fX / m_nScreenWidth;
+	m.center[1] = fY / m_nScreenHeight;
+	m.halfSize[0] = fHalfW / m_nScreenWidth;
+	m.halfSize[1] = fHalfH / m_nScreenHeight;
+	m.angle = fAngle;
+	m.alpha = fAlpha;
 }
 
 // ----------------------------------------------------------------------- //

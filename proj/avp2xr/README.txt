@@ -90,10 +90,13 @@ Loading the VR cshell
   the retail copies live in AVP2DLL.REZ, and loose DLLs in the game folder are NOT used. Install_avp2vr.bat copies
   deploy\vrrez\cshell.dll into <game folder>\vrrez, and the VR launchers run lithtech.exe with avp2cmds.txt's
   -rez list plus -rez vrrez from the game folder; later -rez entries win, so that cshell.dll replaces the retail one.
-  vrrez also gets object.lto, cres.dll and sres.dll built from the same source, so Master Server Patch 2.4
+  vrrez also gets cres.dll and sres.dll built from the same source, so Master Server Patch 2.4
   (avp2p5.rez: its own cshell.dll, cres.dll and sres.dll, and retail 1.0.9.6's object.lto) can stay in the
   list for its maps and art.
-  After rebuilding, copy cshell.dll (and object.lto/cres.dll/sres.dll if they changed) from
+  object.lto stays the retail one: the one built here (VS2022) crashed in the game code when firing
+  (an access violation in object.lto, 2026-10-09), so it isn't installed, and Install_avp2vr.bat removes
+  a copy an earlier install left in vrrez.
+  After rebuilding, copy cshell.dll (and cres.dll/sres.dll if they changed) from
   K:\Coding\Aliens-Versus-Predator-2-VR\proj\AVP2\AVP2\ to deploy\vrrez\ and run Install_avp2vr.bat.
 
 HUD (API version 2)
@@ -118,6 +121,14 @@ Resolution (API version 3)
   write. If xrres can't reach the runtime (headset asleep) it writes nothing and the last resolution stays;
   with no copy yet, deploy\dgVoodoo.conf's Resolution applies. "xrres.exe 2244x2352" uses that per-eye size
   instead of asking the runtime.
+
+Markers (API version 11)
+  Images on things in the world, like the Predator's shoulder cannon target triangles (PredTargetFx.cpp).
+  On the head-locked HUD panel they swung off the target as the head turned, so in stereo cshell
+  projects the target into each eye (VRMgr::ProjectToEye) and gives the proxy each image's place, half
+  size, angle and alpha per eye (SetMarkerImage once, SubmitMarkers per frame). The proxy draws them
+  over the eyes at the headset's resolution (DrawMarkers: turned quads, scissored to the eye), under the
+  crosshair. With an older proxy cshell draws them into the eyes itself, in the game's pixels (blocky).
 
 Gamma
   avp2xr.ini Gamma (default 1 = off): the proxy copies the stereo frame and draws it back through

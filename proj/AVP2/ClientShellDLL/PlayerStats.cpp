@@ -23,6 +23,7 @@
 #include "VarTrack.h"
 #include "ProfileMgr.h"
 #include "MultiplayerClientMgr.h"
+#include "PredTargetFx.h"
 
 extern CGameClientShell* g_pGameClientShell;
 extern CInterfaceMgr* g_pInterfaceMgr;
@@ -1003,6 +1004,10 @@ void CPlayerStats::SetCharacterButes(int nType)
 	m_nButeSet = nType;
 
 	ResetStats();
+
+	// VR: the shoulder cannon's target images, ready before the first lock (else it hitches)
+	if(IsPredator(nType))
+		CPredTargetSFX::PreloadVRImages();
 
 	if(g_pInterfaceMgr)
 	{

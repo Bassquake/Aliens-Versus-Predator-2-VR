@@ -310,16 +310,8 @@ void PlayWeaponSound(WEAPON *pWeapon, BARREL *pBarrel, LTVector vPos, WeaponMode
 	}
 }
 
-LTBOOL GetScreenPos(HCAMERA hCamera, HOBJECT hObj, LTIntPt &ptRval, LTBOOL bTargetTorso /*LTFALSE*/)
+LTVector GetScreenTargetPos(HOBJECT hObj, LTBOOL bTargetTorso /*LTFALSE*/)
 {
-	//get camera's position, rotation, and rotation vectors
-	LTVector vCamPos;
-	LTRotation rRot;
-	LTVector vF, vU, vR;
-	g_pCameraMgr->GetCameraPos(hCamera, vCamPos, LTTRUE);
-	g_pCameraMgr->GetCameraRotation(hCamera, rRot, LTTRUE);
-	g_pLTClient->GetRotationVectors(&rRot, &vU, &vR, &vF);
-
 	//get object's position
 	LTVector vObjPos, vObjDims;
 	PhysicsLT* pPhysics = g_pLTClient->Physics();
@@ -354,6 +346,21 @@ LTBOOL GetScreenPos(HCAMERA hCamera, HOBJECT hObj, LTIntPt &ptRval, LTBOOL bTarg
 		//adjust to mid chest
 		vObjPos.y += vObjDims.y/2;
 	}
+
+	return vObjPos;
+}
+
+LTBOOL GetScreenPos(HCAMERA hCamera, HOBJECT hObj, LTIntPt &ptRval, LTBOOL bTargetTorso /*LTFALSE*/)
+{
+	//get camera's position, rotation, and rotation vectors
+	LTVector vCamPos;
+	LTRotation rRot;
+	LTVector vF, vU, vR;
+	g_pCameraMgr->GetCameraPos(hCamera, vCamPos, LTTRUE);
+	g_pCameraMgr->GetCameraRotation(hCamera, rRot, LTTRUE);
+	g_pLTClient->GetRotationVectors(&rRot, &vU, &vR, &vF);
+
+	LTVector vObjPos = GetScreenTargetPos(hObj, bTargetTorso);
 
 	//calculate camera to object vector
 	LTVector vToObject = vObjPos-vCamPos;

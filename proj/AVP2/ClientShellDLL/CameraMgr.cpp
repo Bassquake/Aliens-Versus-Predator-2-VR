@@ -313,6 +313,7 @@ void CameraMgr::RenderStereo(HCAMERA hCamera, VRMgr *pVR)
 		g_pLTClient->RenderCamera(pCamera->hCamera);
 	}
 
+	pVR->DrawEyeOverlays();
 	pVR->DrawCrosshairs();
 	pVR->RestoreWeapon();
 

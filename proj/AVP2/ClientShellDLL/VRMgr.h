@@ -161,6 +161,22 @@ class VRMgr
 		void		ProjectCrosshair(int nEye, HCAMERA hCamera, const LTVector &vEyePos, const LTRotation &rEyeRot,
 									 LTFLOAT fFOVX, LTFLOAT fFOVY, const LTRect &rRect);
 		void		DrawCrosshairs();
+
+		// Screen markers on things in the world (the Predator's shoulder cannon target): drawn into
+		// each eye's view after both eyes have rendered, so they stay on the thing as the head turns
+		// (on the head-locked HUD panel they swung about). ProjectToEye gives a world point's place
+		// in that eye's view of the player camera this frame (fX, fY on the screen, inside rRect) and
+		// how much bigger an image there is than on the flat screen at the same angle.
+		void		DrawEyeOverlays();
+		LTBOOL		ProjectToEye(int nEye, const LTVector &vWorld, LTFLOAT &fX, LTFLOAT &fY,
+								 LTFLOAT &fScaleX, LTFLOAT &fScaleY, LTRect &rRect) const;
+		// avp2xr 11 on draws the markers at the headset's resolution (the game's own 2D drawing is
+		// blocky there): during DrawEyeOverlays, AddMarker instead of drawing. fX, fY and the half
+		// size are on the screen (game pixels), the angle clockwise in radians.
+		LTBOOL		CanAddMarkers() const				{ return m_pApi && m_pApi->version >= 11; }
+		void		AddMarker(const char *szImage, HSURFACE hImage, int nEye, LTFLOAT fX, LTFLOAT fY,
+							  LTFLOAT fHalfW, LTFLOAT fHalfH, LTFLOAT fAngle, LTFLOAT fAlpha);
+
 		void		PlaceWeaponForEye(const LTVector &vEyePos, const LTRotation &rEyeRot, LTFLOAT fFOVX, LTFLOAT fFOVY);
 		void		RestoreWeapon();
 
@@ -276,6 +292,16 @@ class VRMgr
 		uint32			m_nCrosshairImageId;	// the crosshair image avp2xr was last given, 0 = none
 		LTFLOAT			m_fCrosshairScaleX[2];	// its size in that eye relative to the flat screen
 		LTFLOAT			m_fCrosshairScaleY[2];
+		LTBOOL			m_bEyeView[2];			// the player camera's view in that eye, this frame (for ProjectToEye)
+		LTVector		m_vEyeViewPos[2];
+		LTRotation		m_rEyeViewRot[2];
+		LTFLOAT			m_fEyeViewFOVX[2];
+		LTFLOAT			m_fEyeViewFOVY[2];
+		LTRect			m_rEyeViewRect[2];
+		Avp2XrMarker	m_Markers[AVP2XR_MAX_MARKERS];	// AddMarker's, for this frame
+		int				m_nMarkers;
+		uint32			m_nMarkerImageId[AVP2XR_MAX_MARKER_IMAGES];	// the image avp2xr was given in each slot, 0 = none
+		int				m_nNextMarkerSlot;		// the slot a new image goes in when all are used
 		unsigned int	m_nMenuButtons;			// AVP2XR_BTN_* held, as last seen in the menus
 		int				m_nMenuKey;				// arrow key the stick is holding down in the menus, 0 = none
 		uint32			m_nMenuRepeatTime;		// GetTickCount() to repeat m_nMenuKey at

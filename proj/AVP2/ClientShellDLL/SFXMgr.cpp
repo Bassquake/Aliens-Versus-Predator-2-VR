@@ -17,6 +17,7 @@
 #include "GameClientShell.h"
 #include "StarLightViewFX.h"
 #include "CharacterFX.h"
+#include "PredTargetFx.h"
 #include "MultiplayerClientMgr.h"
 
 #ifndef C_SPECIAL_FX_FACTORY_H
@@ -515,6 +516,20 @@ void CSFXMgr::PostRenderDraw()
 		if (iter->pSFX) 
 		{
 			iter->pSFX->PostRenderDraw();
+		}
+	}}
+}
+
+void CSFXMgr::PostRenderDrawInEyes()
+{
+	if (!m_pClientDE) return;
+
+	{for( CSpecialFXList::Iterator iter = m_dynSFXLists[SFX_PRED_TARGET_ID].Begin();
+		 iter != m_dynSFXLists[SFX_PRED_TARGET_ID].End(); ++iter)
+	{
+		if (iter->pSFX)
+		{
+			((CPredTargetSFX*)iter->pSFX)->DrawInEyes();
 		}
 	}}
 }

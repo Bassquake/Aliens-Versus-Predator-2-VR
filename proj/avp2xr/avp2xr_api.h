@@ -13,7 +13,11 @@
 #ifndef AVP2XR_API_H
 #define AVP2XR_API_H
 
-#define AVP2XR_API_VERSION 10
+#define AVP2XR_API_VERSION 11
+
+// Version 11: SetMarkerImage / SubmitMarkers
+#define AVP2XR_MAX_MARKER_IMAGES	8
+#define AVP2XR_MAX_MARKERS			16
 
 // Avp2XrInput::buttons
 #define AVP2XR_BTN_FIRE			0x01	// right trigger
@@ -91,6 +95,17 @@ struct Avp2XrCrosshair
 	float alpha;        // 0-1
 };
 
+// SubmitMarkers: an image on something in the world (the Predator's shoulder cannon target), in one eye
+struct Avp2XrMarker
+{
+	int image;          // 0 to AVP2XR_MAX_MARKER_IMAGES - 1, as given to SetMarkerImage
+	int eye;            // 0 = left, 1 = right: drawn inside that eye's image only
+	float center[2];    // x, y as fractions (0-1) of the back buffer
+	float halfSize[2];  // half its width and height before it's turned, same units
+	float angle;        // radians, clockwise on the screen, about its centre
+	float alpha;        // 0-1
+};
+
 struct Avp2XrApi
 {
 	int version;  // AVP2XR_API_VERSION
@@ -128,6 +143,16 @@ struct Avp2XrApi
 	// drawing snaps to its pixels, several headset pixels each, so a crosshair it draws moves in
 	// steps.) Not called = no crosshair that frame.
 	void (__cdecl* SubmitCrosshairs)(const Avp2XrCrosshair crosshairs[2]);
+
+	// Version 11 on:
+
+	// Marker image number image (0 to AVP2XR_MAX_MARKER_IMAGES - 1): width x height pixels, each
+	// 0xAARRGGBB. It's copied; call again when it changes. pixels = null removes it.
+	void (__cdecl* SetMarkerImage)(int image, int width, int height, const unsigned int* pixels);
+
+	// Per stereo frame, before SubmitStereo: up to AVP2XR_MAX_MARKERS images drawn over the eyes
+	// like the crosshair (under it), at the headset's resolution. Not called = none that frame.
+	void (__cdecl* SubmitMarkers)(const Avp2XrMarker* markers, int count);
 };
 
 typedef const Avp2XrApi* (__cdecl* PFN_avp2xr_GetApi)();

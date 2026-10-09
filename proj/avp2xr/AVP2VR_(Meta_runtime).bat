@@ -18,7 +18,7 @@ rem The -rez list the engine loads cres.dll/cshell.dll from is in avp2cmds.txt, 
 rem writes the first time its Play button is used, into VirtualStore when it isn't elevated (lithtech.exe
 rem reads that copy first, cmd doesn't see it, so look there explicitly). Master Server Patch 2.4's
 rem avp2p5.rez in it is fine: its maps and art are used, and vrrez (last, so it wins) replaces its
-rem cshell.dll, object.lto, cres.dll and sres.dll with ones built from the 1.0.9.6 source.
+rem cshell.dll, cres.dll and sres.dll with ones built from the 1.0.9.6 source.
 rem Without avp2cmds.txt the engine finds no resources ("Error copying file cres.dll"), so fall back to the
 rem launcher's default list, keeping only the .rez files/folders that exist.
 set "CMDFILE=%LOCALAPPDATA%\VirtualStore\Program Files (x86)\Fox\Aliens vs. Predator 2\avp2cmds.txt"
