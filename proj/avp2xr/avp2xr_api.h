@@ -13,7 +13,7 @@
 #ifndef AVP2XR_API_H
 #define AVP2XR_API_H
 
-#define AVP2XR_API_VERSION 11
+#define AVP2XR_API_VERSION 12
 
 // Version 11: SetMarkerImage / SubmitMarkers
 #define AVP2XR_MAX_MARKER_IMAGES	8
@@ -51,6 +51,10 @@
 // SubmitStereo hudFlags
 #define AVP2XR_HUD_FOLLOWS		1	// a HUD-only image follows with the next flip; it is shown
 									// head-locked, in front of the viewer
+#define AVP2XR_HUD_NOTE_FOLLOWS	2	// version 12 on, with AVP2XR_HUD_FOLLOWS: before the HUD's flip
+									// comes one more, a note (story object) alone on black. It's
+									// shown fixed in the world where the head looked when the note
+									// appeared, until a frame without this flag
 
 struct Avp2XrView
 {

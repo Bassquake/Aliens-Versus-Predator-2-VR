@@ -5133,17 +5133,36 @@ void CGameClientShell::RenderCamera(DBOOL bDrawInterface)
 		// In stereo the HUD can't share the screen with the two eye views, so flip the eyes now
 		// and draw the HUD alone on black; the avp2xr proxy turns that second image into a
 		// transparent HUD panel in the headset.
+		// A note (story object) on screen gets a flip of its own before the HUD, which avp2xr
+		// shows fixed in the world in front of the player instead of on the head-locked HUD.
+		LTBOOL bNoteDrawn = LTFALSE;
 		if(m_VRMgr.IsStereoRendered())
 		{
+			LTBOOL bNote = m_pStoryElement && m_VRMgr.CanShowWorldNotes();
+			LTVector vBlack(0.0f, 0.0f, 0.0f);
+
 			g_pLTClient->End3D();
 			m_VRMgr.ProfileMark(VRMgr::PROF_END3D);
-			m_VRMgr.SubmitEyes(LTTRUE);
+			m_VRMgr.SubmitEyes(LTTRUE, bNote);
 			g_pLTClient->FlipScreen(0);
 			m_VRMgr.ProfileMark(VRMgr::PROF_FLIPPED);
 
-			LTVector vBlack(0.0f, 0.0f, 0.0f);
 			g_pLTClient->ClearScreen(LTNULL, CLEARSCREEN_SCREEN | CLEARSCREEN_RENDER, &vBlack);
 			g_pLTClient->Start3D();
+
+			if(bNote)
+			{
+				// Update can end the story object (time, range, death); the flip still goes ahead
+				g_pLTClient->StartOptimized2D();
+				m_pStoryElement->Update();
+				g_pLTClient->EndOptimized2D();
+				g_pLTClient->End3D();
+				g_pLTClient->FlipScreen(0);
+				bNoteDrawn = LTTRUE;
+
+				g_pLTClient->ClearScreen(LTNULL, CLEARSCREEN_SCREEN | CLEARSCREEN_RENDER, &vBlack);
+				g_pLTClient->Start3D();
+			}
 		}
 
 
@@ -5168,7 +5187,8 @@ void CGameClientShell::RenderCamera(DBOOL bDrawInterface)
 
 			if(m_pStoryElement)
 			{
-				m_pStoryElement->Update();
+				if(!bNoteDrawn)
+					m_pStoryElement->Update();
 			}
 			else
 			{

@@ -193,7 +193,9 @@ static struct
 	// Gamma for the eye images in the headset: above 1 brightens the darker tones (shadows) while
 	// black and white stay put; 1 = as the game draws them (no extra pass)
 	float gamma;
-} g_cfg = { 2.0f, 3.0f, 0.0f, 1.5f, 2.25f, 0.0f, 1, 0, 0.5f, 1.0f, 1, 1, 0, 1.0f };
+	// Notes (story objects) stay where they appeared in the world instead of following the head
+	int worldNotes;
+} g_cfg = { 2.0f, 3.0f, 0.0f, 1.5f, 2.25f, 0.0f, 1, 0, 0.5f, 1.0f, 1, 1, 0, 1.0f, 1 };
 
 static float IniFloat(const wchar_t* ini, const wchar_t* key, float def)
 {
@@ -230,10 +232,13 @@ static void LoadSettings()
 	g_cfg.gamma = IniFloat(ini, L"Gamma", g_cfg.gamma);
 	if (g_cfg.gamma < 0.5f) g_cfg.gamma = 0.5f;
 	if (g_cfg.gamma > 3.0f) g_cfg.gamma = 3.0f;
-	Log("Settings: ScreenDistance=%.2f ScreenWidth=%.2f ScreenHeight=%.2f HudDistance=%.2f HudWidth=%.2f HudHeight=%.2f DesktopMirror=%d MirrorEye=%s PanelScale=%.2f MirrorFillScreen=%s FocusGameWindow=%s AdjustHandsLive=%s Gamma=%.2f",
+	wchar_t notes[16];
+	GetPrivateProfileStringW(L"VR", L"WorldNotes", L"yes", notes, 16, ini);
+	g_cfg.worldNotes = !notes[0] || !wcschr(L"nN0fF", notes[0]);
+	Log("Settings: ScreenDistance=%.2f ScreenWidth=%.2f ScreenHeight=%.2f HudDistance=%.2f HudWidth=%.2f HudHeight=%.2f DesktopMirror=%d MirrorEye=%s PanelScale=%.2f MirrorFillScreen=%s FocusGameWindow=%s AdjustHandsLive=%s Gamma=%.2f WorldNotes=%s",
 		g_cfg.distance, g_cfg.width, g_cfg.height, g_cfg.hudDistance, g_cfg.hudWidth, g_cfg.hudHeight, g_cfg.desktopMirror,
 		g_cfg.mirrorEye == 1 ? "right" : g_cfg.mirrorEye == 2 ? "both" : "left", g_cfg.panelScale, g_cfg.mirrorFill ? "yes" : "no", g_cfg.focusWindow ? "yes" : "no",
-		g_cfg.adjustHandsLive ? "yes" : "no", g_cfg.gamma);
+		g_cfg.adjustHandsLive ? "yes" : "no", g_cfg.gamma, g_cfg.worldNotes ? "yes" : "no");
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -310,6 +315,11 @@ static bool g_viewsValid;          // g_views were located for the begun frame
 static bool g_stereoSubmitted;     // the game rendered both eyes for the begun frame
 static bool g_hudFollows;          // ...and will flip a HUD-only image right after the eyes
 static bool g_hudNext;             // the next Present is that HUD image
+static bool g_noteFollows;         // ...and a note-only image before the HUD's
+static bool g_noteNext;            // the next Present is that note image
+static bool g_noteOk;              // the note image was captured for the open frame
+static bool g_noteAnchored;        // g_notePose is set for the note on screen
+static XrPosef g_notePose;         // where that note stays, in LOCAL space
 static Avp2XrEyeSubmit g_eyeSubmit[2];
 static Avp2XrCrosshair g_crosshairs[2];  // for the begun frame; drawn into the eyes at their flip
 static unsigned int* g_crosshairPixels;  // the latest SetCrosshairImage
@@ -392,6 +402,7 @@ static void XrShutdown(bool disable)
 	g_instance = XR_NULL_HANDLE;
 	g_running = false;
 	g_frameBegun = g_viewsValid = g_stereoSubmitted = g_hudFollows = g_hudNext = false;
+	g_noteFollows = g_noteNext = g_noteOk = g_noteAnchored = false;
 	if (g_context)
 		g_context->Release();
 	if (g_device)
@@ -1687,6 +1698,31 @@ static void __cdecl Api_SubmitStereo(const Avp2XrEyeSubmit eyes[2], int hudFlags
 	g_eyeSubmit[1] = eyes[1];
 	g_stereoSubmitted = true;
 	g_hudFollows = (hudFlags & AVP2XR_HUD_FOLLOWS) != 0;
+	g_noteFollows = g_hudFollows && (hudFlags & AVP2XR_HUD_NOTE_FOLLOWS);
+	if (!g_noteFollows)
+		g_noteAnchored = false;
+	else if (!g_noteAnchored)
+	{
+		// A new note: it stays HudDistance ahead of where the head looks now (turned and tilted
+		// with the head but not rolled), HudHeight along its own up, facing the head.
+		const XrQuaternionf& q = g_views[0].pose.orientation;
+		float fx = -2.0f * (q.x * q.z + q.w * q.y);
+		float fy = -2.0f * (q.y * q.z - q.w * q.x);
+		float fz = -(1.0f - 2.0f * (q.x * q.x + q.y * q.y));
+		float yaw = atan2f(-fx, -fz);
+		float pitch = asinf(fy < -1.0f ? -1.0f : fy > 1.0f ? 1.0f : fy);
+		float sy = sinf(yaw * 0.5f), cy = cosf(yaw * 0.5f), sp = sinf(pitch * 0.5f), cp = cosf(pitch * 0.5f);
+		g_notePose.orientation = { cy * sp, sy * cp, -sy * sp, cy * cp };
+		float forward[3] = { -sinf(yaw) * cosf(pitch), sinf(pitch), -cosf(yaw) * cosf(pitch) };
+		float up[3] = { sinf(pitch) * sinf(yaw), cosf(pitch), sinf(pitch) * cosf(yaw) };
+		const XrVector3f& l = g_views[0].pose.position;
+		const XrVector3f& r = g_views[1].pose.position;
+		g_notePose.position.x = (l.x + r.x) * 0.5f + forward[0] * g_cfg.hudDistance + up[0] * g_cfg.hudHeight;
+		g_notePose.position.y = (l.y + r.y) * 0.5f + forward[1] * g_cfg.hudDistance + up[1] * g_cfg.hudHeight;
+		g_notePose.position.z = (l.z + r.z) * 0.5f + forward[2] * g_cfg.hudDistance + up[2] * g_cfg.hudHeight;
+		g_noteAnchored = true;
+		Log("Note: shown %s", g_cfg.worldNotes ? "fixed in the world" : "head-locked (WorldNotes=no)");
+	}
 }
 
 static int g_gameWidth, g_gameHeight;  // the game's own screen size; 0 until reported
@@ -1860,7 +1896,7 @@ struct Panel
 	uint32_t imageCount;
 	ID3D11Buffer* params;
 };
-static Panel g_hud = { "HUD", false }, g_screen = { "Screen", true };
+static Panel g_hud = { "HUD", false }, g_screen = { "Screen", true }, g_note = { "Note", false };
 
 // Headset pixels per unit of tangent across the middle of the view, from the eye image size the
 // runtime recommends and its field of view (fixed, so found once). 0 until known.
@@ -1911,6 +1947,8 @@ static void DestroyPanelTargets(Panel& p)
 static void DestroyHud()
 {
 	DestroyPanelTargets(g_hud);
+	DestroyPanelTargets(g_note);
+	SafeRelease(g_note.params);
 	DestroyPanelTargets(g_screen);
 	SafeRelease(g_hud.params);
 	SafeRelease(g_screen.params);
@@ -2152,8 +2190,8 @@ static void MirrorPass(ID3D11PixelShader* ps, ID3D11ShaderResourceView* srv, con
 
 // Redraws the back buffer with the kept eye image (eye 0 left, 1 right) filling it, and with
 // hud (the HUD image, the game's screen stretched over the back buffer) over it in the game's
-// aspect ratio, if given.
-static bool MirrorDraw(IDXGISwapChain* sc, int eye, ID3D11ShaderResourceView* hud)
+// aspect ratio, if given; note (the note image, likewise) goes under the HUD.
+static bool MirrorDraw(IDXGISwapChain* sc, int eye, ID3D11ShaderResourceView* hud, ID3D11ShaderResourceView* note = nullptr)
 {
 	ID3D11Texture2D* backBuffer = nullptr;
 	if (!g_mirrorSrv || FAILED(sc->GetBuffer(0, IID_PPV_ARGS(&backBuffer))))
@@ -2196,7 +2234,7 @@ static bool MirrorDraw(IDXGISwapChain* sc, int eye, ID3D11ShaderResourceView* hu
 	D3D11_VIEWPORT vp = { 0.0f, 0.0f, (float)bb.Width, (float)bb.Height, 0.0f, 1.0f };
 	MirrorPass(g_mirrorPs, g_mirrorSrv, eyeRect, vp, nullptr);
 
-	if (hud)
+	if (hud || note)
 	{
 		// The HUD is the game's whole screen, so it goes in the game's aspect ratio, centred
 		float gameAspect = (g_gameWidth > 0 && g_gameHeight > 0) ? (float)g_gameWidth / (float)g_gameHeight : 4.0f / 3.0f;
@@ -2212,7 +2250,10 @@ static bool MirrorDraw(IDXGISwapChain* sc, int eye, ID3D11ShaderResourceView* hu
 			hv.TopLeftY = (bb.Height - hv.Height) * 0.5f;
 		}
 		const float whole[4] = { 0.0f, 0.0f, 1.0f, 1.0f };
-		MirrorPass(g_mirrorHudPs, hud, whole, hv, g_mirrorHudBlend);
+		if (note)
+			MirrorPass(g_mirrorHudPs, note, whole, hv, g_mirrorHudBlend);
+		if (hud)
+			MirrorPass(g_mirrorHudPs, hud, whole, hv, g_mirrorHudBlend);
 	}
 
 	ID3D11ShaderResourceView* noSrv = nullptr;
@@ -2333,8 +2374,8 @@ static bool EnsurePanel(Panel& p, const D3D11_TEXTURE2D_DESC& bb)
 	// The panel image: the headset's pixel density across the quad, times PanelScale
 	UINT width = gameWidth, height = gameHeight;
 	float perTan = DisplayPixelsPerTan();
-	float quadWidth = &p == &g_hud ? g_cfg.hudWidth : g_cfg.width;
-	float quadDistance = &p == &g_hud ? g_cfg.hudDistance : g_cfg.distance;
+	float quadWidth = &p == &g_screen ? g_cfg.width : g_cfg.hudWidth;
+	float quadDistance = &p == &g_screen ? g_cfg.distance : g_cfg.hudDistance;
 	if (g_cfg.panelScale > 0 && perTan > 0 && quadDistance > 0.01f)
 	{
 		float scale = g_cfg.panelScale * perTan * quadWidth / quadDistance / gameWidth;
@@ -2490,8 +2531,8 @@ static void DumpPanel(Panel& p, ID3D11RenderTargetView* image)
 {
 	static wchar_t dir[MAX_PATH];
 	static const bool dump = GetEnvironmentVariableW(L"AVP2XR_DUMP", dir, MAX_PATH) != 0;
-	static int hudCount, screenCount;
-	int& count = &p == &g_hud ? hudCount : screenCount;
+	static int hudCount, screenCount, noteCount;
+	int& count = &p == &g_hud ? hudCount : &p == &g_note ? noteCount : screenCount;
 	if (!dump || ++count != 60)
 		return;
 	char name[64];
@@ -3240,12 +3281,19 @@ static void EndXrFrame(const XrCompositionLayerBaseHeader* const* layers, uint32
 	if (XR_FAILED(r))
 		Log("xrEndFrame failed: %s", XrStr(r));
 	g_frameBegun = false;
-	g_stereoSubmitted = g_viewsValid = g_hudFollows = false;
+	g_stereoSubmitted = g_viewsValid = g_hudFollows = g_noteFollows = g_noteOk = false;
 	memset(g_crosshairs, 0, sizeof(g_crosshairs));
 }
 
 static PresentAction XrFrame(IDXGISwapChain* sc)
 {
+	if (g_noteNext)
+	{
+		// The note's flip, between the eyes' and the HUD's: kept for the HUD's flip to show
+		g_noteNext = false;
+		g_noteOk = g_frameBegun && CapturePanel(g_note, sc);
+		return PRESENT_SKIP;
+	}
 	if (g_hudNext)
 	{
 		// The second flip of a stereo frame: the HUD alone. Finish the frame begun for the eyes.
@@ -3255,9 +3303,21 @@ static PresentAction XrFrame(IDXGISwapChain* sc)
 			g_mirrorPending = false;
 			return PRESENT_SKIP;  // the eye capture failed and that frame already ended
 		}
-		const XrCompositionLayerBaseHeader* layers[2] = { (const XrCompositionLayerBaseHeader*)&g_projection };
+		const XrCompositionLayerBaseHeader* layers[3] = { (const XrCompositionLayerBaseHeader*)&g_projection };
 		uint32_t layerCount = 1;
-		XrCompositionLayerQuad hud;
+		XrCompositionLayerQuad hud, note;
+		bool noteOk = g_noteOk;
+		if (noteOk)
+		{
+			// Under the HUD: the same size, but where the note appeared unless WorldNotes=no
+			note = MakeQuad(g_note.swapchain, g_note.width, g_note.height, g_cfg.hudDistance, g_cfg.hudWidth, g_cfg.hudHeight);
+			note.layerFlags = XR_COMPOSITION_LAYER_BLEND_TEXTURE_SOURCE_ALPHA_BIT;
+			if (g_cfg.worldNotes)
+				note.pose = g_notePose;
+			else
+				note.space = g_viewSpace;
+			layers[layerCount++] = (const XrCompositionLayerBaseHeader*)&note;
+		}
 		double t0 = NowMs();
 		bool hudOk = CapturePanel(g_hud, sc);
 		g_timeHud += NowMs() - t0;
@@ -3278,7 +3338,7 @@ static PresentAction XrFrame(IDXGISwapChain* sc)
 		{
 			g_mirrorPending = false;
 			t0 = NowMs();
-			if (MirrorDraw(sc, g_cfg.mirrorEye, hudOk ? g_hud.srv : nullptr))
+			if (MirrorDraw(sc, g_cfg.mirrorEye, hudOk ? g_hud.srv : nullptr, noteOk ? g_note.srv : nullptr))
 			{
 				hudAction = PRESENT_NO_VSYNC;
 				g_presentIsEye = true;
@@ -3287,7 +3347,7 @@ static PresentAction XrFrame(IDXGISwapChain* sc)
 		}
 
 		LogTiming();
-		LogOutputMode(layerCount == 2 ? OUTPUT_STEREO_HUD : OUTPUT_STEREO);
+		LogOutputMode(hudOk ? OUTPUT_STEREO_HUD : OUTPUT_STEREO);
 		return hudAction;
 	}
 
@@ -3350,8 +3410,11 @@ static PresentAction XrFrame(IDXGISwapChain* sc)
 
 		if (g_hudFollows)
 		{
-			// Keep the frame open until the HUD image arrives with the next Present.
+			// Keep the frame open until the HUD image arrives with the next Present (after the
+			// note's, if one comes).
 			g_hudNext = true;
+			g_noteNext = g_noteFollows;
+			g_noteOk = false;
 			return eyeAction;
 		}
 		const XrCompositionLayerBaseHeader* layers[1] = { (const XrCompositionLayerBaseHeader*)&g_projection };
@@ -3362,7 +3425,10 @@ static PresentAction XrFrame(IDXGISwapChain* sc)
 	}
 
 	if (g_stereoSubmitted && g_hudFollows)
-		g_hudNext = true;  // drop the HUD-only image that follows this failed frame
+	{
+		g_hudNext = true;  // drop the HUD-only image (and the note's) that follow this failed frame
+		g_noteNext = g_noteFollows;
+	}
 	XrCompositionLayerQuad quad;
 	const XrCompositionLayerBaseHeader* layers[1] = { (const XrCompositionLayerBaseHeader*)&quad };
 	if (copied)
