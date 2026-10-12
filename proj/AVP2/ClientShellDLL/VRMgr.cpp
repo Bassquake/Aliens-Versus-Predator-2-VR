@@ -534,7 +534,8 @@ VRMgr::VRMgr()
 	m_nAdjustHand = 0;
 	m_bAdjustMove = LTFALSE;
 	memset(m_fAdjustStart, 0, sizeof(m_fAdjustStart));
-	m_bAdjustChanged[0] = m_bAdjustChanged[1] = m_bAdjustChanged[2] = LTFALSE;
+	memset(m_bAdjustChanged, 0, sizeof(m_bAdjustChanged));
+	memset(m_fTwoHandFit, 0, sizeof(m_fTwoHandFit));
 	m_nAdjustShowTime = 0;
 	m_pAdjustWeapon = LTNULL;
 	m_nAdjustRaw = 0;
@@ -562,6 +563,10 @@ VRMgr::VRMgr()
 	m_rArmAngle.Init();
 	m_fTwoHandDown = 0.0f;
 	m_fTwoHandBlend = 0.0f;
+	m_bTwoHandOnGun = LTTRUE;
+	m_bTwoHandGrip = LTFALSE;
+	m_vTwoHandGrip.Init();
+	m_vTwoHandMove.Init();
 	m_fArmBlend = 0.0f;
 	m_rGripToAim.Init();
 	m_hArmModel = LTNULL;
@@ -818,6 +823,8 @@ LTBOOL VRMgr::FindApi()
 					m_szHandsIni[0] = 0;
 				GetPrivateProfileStringA("VR", "TwoHandedHandDown", "6", szValue, sizeof(szValue), szIni);
 				m_fTwoHandDown = (LTFLOAT)atof(szValue) * fUnitsPerCm;
+				GetPrivateProfileStringA("VR", "TwoHandedHandOnGun", "yes", szValue, sizeof(szValue), szIni);
+				m_bTwoHandOnGun = !szValue[0] || !strchr("nN0fF", szValue[0]);
 				GetPrivateProfileStringA("VR", "LeftArmForcePose", "yes", szValue, sizeof(szValue), szIni);
 				m_bArmForcePose = !szValue[0] || !strchr("nN0fF", szValue[0]);
 				if(!m_bArmForcePose)
@@ -827,9 +834,9 @@ LTBOOL VRMgr::FindApi()
 				strncpy(m_szIni, szIni, sizeof(m_szIni) - 1);
 				m_szIni[sizeof(m_szIni) - 1] = 0;
 				VRLog("Settings: LeftArm=%s LeftHandMatch=%s LeftHandForward=%.1f LeftHandUp=%.1f LeftHandRight=%.1f (cm) "
-					"LeftHandPitch=%.1f LeftHandYaw=%.1f LeftHandRoll=%.1f (degrees) TwoHandedHandDown=%.1f (cm)", m_bLeftArm ? "yes" : "no",
-					m_bLeftMatch ? "yes" : "no", fLeft[2], fLeft[1], fLeft[0], fLeftAngle[0], fLeftAngle[1], fLeftAngle[2],
-					fUnitsPerCm > 0.0f ? m_fTwoHandDown / fUnitsPerCm : 0.0f);
+					"LeftHandPitch=%.1f LeftHandYaw=%.1f LeftHandRoll=%.1f (degrees) TwoHandedHandOnGun=%s TwoHandedHandDown=%.1f (cm)",
+					m_bLeftArm ? "yes" : "no", m_bLeftMatch ? "yes" : "no", fLeft[2], fLeft[1], fLeft[0], fLeftAngle[0], fLeftAngle[1],
+					fLeftAngle[2], m_bTwoHandOnGun ? "yes" : "no", fUnitsPerCm > 0.0f ? m_fTwoHandDown / fUnitsPerCm : 0.0f);
 			}
 
 			// The menus may already have turned the cursor on before VR was found
@@ -1402,6 +1409,17 @@ void VRMgr::ReadLeftFit(const char *szWeapon)
 	ApplyLeftFit();
 	VRLog("Left hand for %s: [LeftHand] %s=%s%s%s", szWeapon[0] ? szWeapon : "?", szWeapon[0] ? szWeapon : "?",
 		nValues >= 3 ? szValue : "(not set: the LeftHand* settings)", nValues >= 3 ? " from " : "", nValues >= 3 ? szFrom : "");
+
+	// Two-handed with the hand on the gun, where the left controller holds it: forward up right, cm
+	memset(m_fTwoHandFit, 0, sizeof(m_fTwoHandFit));
+	if(ReadFitLine("TwoHandGrip", szWeapon, szValue, sizeof(szValue), &szFrom) &&
+		sscanf(szValue, "%f %f %f", &f[0], &f[1], &f[2]) == 3)
+	{
+		for(int g = 0; g < 3; g++)
+			m_fTwoHandFit[g] = f[g];
+		VRLog("Two-handed grip for %s: [TwoHandGrip] %s=%s from %s", szWeapon, szWeapon, szValue, szFrom);
+	}
+	ApplyTwoHandFit();
 }
 
 void VRMgr::ApplyGunFit()
@@ -1418,6 +1436,12 @@ void VRMgr::ApplyLeftFit()
 	m_rArmAngle = GunAngleRotation(m_fLeftFit[3], m_fLeftFit[4], m_fLeftFit[5]);
 }
 
+void VRMgr::ApplyTwoHandFit()
+{
+	LTFLOAT fUnitsPerCm = g_vtVRWorldScale.GetFloat() / 100.0f;
+	m_vTwoHandMove = LTVector(m_fTwoHandFit[2], m_fTwoHandFit[1], m_fTwoHandFit[0]) * fUnitsPerCm;
+}
+
 // ----------------------------------------------------------------------- //
 // Adjust mode. The Adjust button (avp2xr.ini, e.g. Adjust=long left menu) turns it on in play; the
 // game then gets no controller input, and for the weapon in hand:
@@ -1425,8 +1449,9 @@ void VRMgr::ApplyLeftFit()
 //   (moving instead: left stick up/down = forward/back, left/right = right/left; right stick
 //    up/down = up/down)
 //   Use = next: right hand, left hand, muzzle ([Muzzle]: where the shots start and how the flash
-//         is turned; the trigger still fires, to see it), Jump = turning / moving, Vision = undo
-//         its changes
+//         is turned; the trigger still fires, to see it), left hand on the gun ([TwoHandGrip]: where
+//         the left controller holds it two-handed; moving only), Jump = turning / moving, Vision =
+//         undo its changes
 //   Adjust again (or leaving play, or changing weapon) = done: changes are saved to hands.ini
 // The current values are shown as game messages.
 
@@ -1462,9 +1487,10 @@ void VRMgr::UpdateAdjust(unsigned int nRaw, unsigned int nPressed)
 		memcpy(m_fAdjustStart[0], m_fGunFit, sizeof(m_fGunFit));
 		memcpy(m_fAdjustStart[1], m_fLeftFit, sizeof(m_fLeftFit));
 		memcpy(m_fAdjustStart[2], m_fMuzzleFit, sizeof(m_fMuzzleFit));
-		m_bAdjustChanged[0] = m_bAdjustChanged[1] = m_bAdjustChanged[2] = LTFALSE;
+		memcpy(m_fAdjustStart[3], m_fTwoHandFit, sizeof(m_fTwoHandFit));
+		memset(m_bAdjustChanged, 0, sizeof(m_bAdjustChanged));
 		if(g_pMessageMgr)
-			g_pMessageMgr->AddMessage((char*)"Adjust: sticks fit it. Use: right hand/left hand/muzzle, Jump: turn/move, Vision: undo, Adjust: save");
+			g_pMessageMgr->AddMessage((char*)"Adjust: sticks fit it. Use: right hand/left hand/muzzle/left hand on gun, Jump: turn/move, Vision: undo, Adjust: save");
 		VRLog("Adjust mode on for %s", pWeapon->szName);
 		ShowAdjust(LTTRUE);
 		return;
@@ -1478,7 +1504,7 @@ void VRMgr::UpdateAdjust(unsigned int nRaw, unsigned int nPressed)
 
 	if(nPressed & AVP2XR_BTN_USE)
 	{
-		m_nAdjustHand = (m_nAdjustHand + 1) % 3;
+		m_nAdjustHand = (m_nAdjustHand + 1) % 4;
 		ShowAdjust(LTTRUE);
 	}
 	if(nPressed & AVP2XR_BTN_JUMP)
@@ -1486,12 +1512,14 @@ void VRMgr::UpdateAdjust(unsigned int nRaw, unsigned int nPressed)
 		m_bAdjustMove = !m_bAdjustMove;
 		ShowAdjust(LTTRUE);
 	}
-	LTFLOAT *pFit = (m_nAdjustHand == 2) ? m_fMuzzleFit : m_nAdjustHand ? m_fLeftFit : m_fGunFit;
+	LTFLOAT *pFit = (m_nAdjustHand == 3) ? m_fTwoHandFit : (m_nAdjustHand == 2) ? m_fMuzzleFit : m_nAdjustHand ? m_fLeftFit : m_fGunFit;
 	if(nPressed & AVP2XR_BTN_VISION)
 	{
 		memcpy(pFit, m_fAdjustStart[m_nAdjustHand], sizeof(m_fGunFit));
 		m_bAdjustChanged[m_nAdjustHand] = LTFALSE;
-		if(m_nAdjustHand == 1)
+		if(m_nAdjustHand == 3)
+			ApplyTwoHandFit();
+		else if(m_nAdjustHand == 1)
 			ApplyLeftFit();
 		else if(m_nAdjustHand == 0)
 			ApplyGunFit();
@@ -1508,7 +1536,7 @@ void VRMgr::UpdateAdjust(unsigned int nRaw, unsigned int nPressed)
 	LTFLOAT rx = m_Input.turnValid ? AdjustStick(m_Input.turn) : 0.0f;
 	LTFLOAT ry = m_Input.turnValid ? AdjustStick(m_Input.turnY) : 0.0f;
 	LTFLOAT d[6] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-	if(m_bAdjustMove)
+	if(m_bAdjustMove || m_nAdjustHand == 3)
 	{
 		LTFLOAT fCm = VR_ADJUST_CM_PER_SEC * fFrameTime;
 		d[0] = ly * fCm;	// forward
@@ -1534,7 +1562,9 @@ void VRMgr::UpdateAdjust(unsigned int nRaw, unsigned int nPressed)
 	if(bMoved)
 	{
 		m_bAdjustChanged[m_nAdjustHand] = LTTRUE;
-		if(m_nAdjustHand == 1)
+		if(m_nAdjustHand == 3)
+			ApplyTwoHandFit();
+		else if(m_nAdjustHand == 1)
 			ApplyLeftFit();
 		else if(m_nAdjustHand == 0)
 			ApplyGunFit();
@@ -1553,7 +1583,7 @@ void VRMgr::EndAdjust()
 
 	const char *szName = m_pAdjustWeapon ? m_pAdjustWeapon->szName : "";
 	char szMsg[256];
-	if(!szName[0] || !m_szHandsIni[0] || (!m_bAdjustChanged[0] && !m_bAdjustChanged[1] && !m_bAdjustChanged[2]))
+	if(!szName[0] || !m_szHandsIni[0] || (!m_bAdjustChanged[0] && !m_bAdjustChanged[1] && !m_bAdjustChanged[2] && !m_bAdjustChanged[3]))
 	{
 		if(g_pMessageMgr)
 			g_pMessageMgr->AddMessage((char*)"Adjust: off (nothing changed)");
@@ -1572,7 +1602,8 @@ void VRMgr::EndAdjust()
 				  "; [Gun] <weapon> = forward up right  pitch yaw roll\n"
 				  "; [LeftHand] <weapon> = pitch yaw roll  forward up right\n"
 				  "; [Muzzle] <weapon> = forward up right  pitch yaw roll (where its shots start, moved from the model's\n"
-				  ";   muzzle, and how its flash is turned)\n\n", pFile);
+				  ";   muzzle, and how its flash is turned)\n"
+				  "; [TwoHandGrip] <weapon> = forward up right (where the left controller holds the gun two-handed)\n\n", pFile);
 			fclose(pFile);
 		}
 	}
@@ -1597,8 +1628,15 @@ void VRMgr::EndAdjust()
 		WritePrivateProfileStringA("Muzzle", szName, szValue, m_szHandsIni);
 		VRLog("Adjust: saved [Muzzle] %s=%s to %s", szName, szValue, m_szHandsIni);
 	}
-	sprintf(szMsg, "Adjust: saved%s%s%s for %s (hands.ini)", m_bAdjustChanged[0] ? " right hand" : "",
-		m_bAdjustChanged[1] ? " left hand" : "", m_bAdjustChanged[2] ? " muzzle" : "", szName);
+	if(m_bAdjustChanged[3])
+	{
+		sprintf(szValue, "%.1f %.1f %.1f", m_fTwoHandFit[0], m_fTwoHandFit[1], m_fTwoHandFit[2]);
+		WritePrivateProfileStringA("TwoHandGrip", szName, szValue, m_szHandsIni);
+		VRLog("Adjust: saved [TwoHandGrip] %s=%s to %s", szName, szValue, m_szHandsIni);
+	}
+	sprintf(szMsg, "Adjust: saved%s%s%s%s for %s (hands.ini)", m_bAdjustChanged[0] ? " right hand" : "",
+		m_bAdjustChanged[1] ? " left hand" : "", m_bAdjustChanged[2] ? " muzzle" : "",
+		m_bAdjustChanged[3] ? " left hand on gun" : "", szName);
 	if(g_pMessageMgr)
 		g_pMessageMgr->AddMessage(szMsg);
 }
@@ -1611,6 +1649,14 @@ void VRMgr::ShowAdjust(LTBOOL bNow)
 	m_nAdjustShowTime = nNow;
 
 	char szMsg[256];
+	if(m_nAdjustHand == 3)
+	{
+		sprintf(szMsg, "Left hand on gun (hold it two-handed to see it), MOVE: fwd %.1f up %.1f right %.1f",
+			m_fTwoHandFit[0], m_fTwoHandFit[1], m_fTwoHandFit[2]);
+		if(g_pMessageMgr)
+			g_pMessageMgr->AddMessage(szMsg);
+		return;
+	}
 	if(m_nAdjustHand == 2)
 	{
 		sprintf(szMsg, "Muzzle (fire to see it), %s: pitch %.1f yaw %.1f roll %.1f | fwd %.1f up %.1f right %.1f",
@@ -1787,17 +1833,38 @@ void VRMgr::GetEyeCamera(int nEye, HCAMERA hCamera, const LTVector &vPos, const 
 		}
 
 		// Two-handed aiming: with the off hand in front of the gun hand, the gun points from
-		// the gun hand to the off hand, keeping the gun hand's roll.
+		// the gun hand to the off hand, keeping the gun hand's roll. With the hand on the gun
+		// (TwoHandedHandOnGun) it turns so the left hand's place on it (m_vTwoHandGrip: the
+		// smartgun's handle, off to the side) is on the line to the off hand, rather than the barrel.
 		m_bTwoHanded = m_bTwoHanded && m_Input.offValid;
 		if(m_Input.offValid && g_vtVRTwoHanded.GetFloat() != 0.0f)
 		{
 			LTVector vOff = vPos + Rotate(rYaw, FromXrPos(m_Input.offPosition, ref) * fScale);
-			LTVector vToOff = vOff - m_vAimPos;
-			LTFLOAT fLen = vToOff.Mag();
-			LTFLOAT fMetres = fLen / fScale;
 			LTVector vR, vU, vF;
 			LTRotation rAim = m_rShotRot;
 			g_pLTClient->GetMathLT()->GetRotationVectors(rAim, vR, vU, vF);
+
+			// The grip in the gun's frame, used when it's ahead of the right hand
+			LTVector vFrom = m_vAimPos;
+			LTVector vGripDir(0.0f, 0.0f, 1.0f);
+			LTBOOL bGrip = LTFALSE;
+			if(m_bTwoHandGrip && m_vTwoHandGrip.Mag() > 0.05f * fScale)
+			{
+				LTVector vDir = m_vTwoHandGrip / m_vTwoHandGrip.Mag();
+				bGrip = vDir.z > 0.3f;
+				if(bGrip)
+				{
+					vGripDir = vDir;
+					if(m_bGripWorld)
+						vFrom = m_vGripPos;
+					// Where the off hand is expected: the grip's direction from the gun as held
+					vF = Rotate(m_rAimRot, vGripDir);
+				}
+			}
+
+			LTVector vToOff = vOff - vFrom;
+			LTFLOAT fLen = vToOff.Mag();
+			LTFLOAT fMetres = fLen / fScale;
 			LTFLOAT fCos = (fLen > 0.0001f) ? vToOff.Dot(vF) / fLen : -1.0f;
 
 			if(m_bTwoHanded)
@@ -1815,6 +1882,18 @@ void VRMgr::GetEyeCamera(int nEye, HCAMERA hCamera, const LTVector &vPos, const 
 				{
 					vUp.Norm();
 					m_rAimRot = QuatFromBasis(CrossStd(vUp, vForward), vUp, vForward);
+					// Turned back by the grip's angle from the barrel: the gun's frame takes the grip's
+					// direction (from G, the frame pointing along it) to the off hand's
+					if(bGrip)
+					{
+						LTVector vGripUp = LTVector(0.0f, 1.0f, 0.0f) - vGripDir * vGripDir.y;
+						if(vGripUp.MagSqr() > 0.0001f)
+						{
+							vGripUp.Norm();
+							LTRotation rGrip = QuatFromBasis(CrossStd(vGripUp, vGripDir), vGripUp, vGripDir);
+							m_rAimRot = m_rAimRot * rGrip.Conjugate();
+						}
+					}
 					m_rShotRot = m_rAimRot;
 				}
 			}
@@ -1886,12 +1965,15 @@ void VRMgr::GetEyeCamera(int nEye, HCAMERA hCamera, const LTVector &vPos, const 
 
 // ----------------------------------------------------------------------- //
 
-void VRMgr::SubmitEyes(LTBOOL bHudFollows)
+void VRMgr::SubmitEyes(LTBOOL bHudFollows, LTBOOL bNoteFollows)
 {
 	if(!IsStereoRendered() || m_bSubmitted)
 		return;
 
-	m_pApi->SubmitStereo(m_Submit, bHudFollows ? AVP2XR_HUD_FOLLOWS : 0);
+	int nFlags = bHudFollows ? AVP2XR_HUD_FOLLOWS : 0;
+	if(bHudFollows && bNoteFollows && CanShowWorldNotes())
+		nFlags |= AVP2XR_HUD_NOTE_FOLLOWS;
+	m_pApi->SubmitStereo(m_Submit, nFlags);
 	m_bSubmitted = LTTRUE;
 }
 
@@ -2136,6 +2218,17 @@ void VRMgr::PlaceWeapon()
 
 	m_vWeaponOrigin = vOrigin;
 
+	// Two-handed with the hand on the gun, the left controller holds where the animation's left hand
+	// is (the smartgun's side handle, not its barrel): that palm from the right hand, in the gun's
+	// frame (a model point p is at vHand + R ((p - vPalm) S + offset)), for the aim to turn the gun by
+	m_bTwoHandGrip = m_bTwoHandOnGun && m_bLeftArm && m_hArmRoot != INVALID_MODEL_NODE && m_hArmModel == hWeapon;
+	if(m_bTwoHandGrip)
+	{
+		m_vTwoHandGrip = (m_vArmPalm - vPalm) * fScale + m_vGunOffsetCur + m_vTwoHandMove;
+		if(!m_bGripWorld)
+			m_vTwoHandGrip.z -= VR_AIM_TO_PALM * g_vtVRWorldScale.GetFloat();
+	}
+
 	// The muzzle flash belongs at the muzzle: the model's muzzle socket, or else part way along
 	// the line from the flat-screen eye (at minus the game's placement, in model space) to the
 	// game's flash position (the muzzle offset from the model's origin)
@@ -2337,8 +2430,10 @@ void VRMgr::PlaceWeaponForEye(const LTVector &vEyePos, const LTRotation &rEyeRot
 	if((int32)(nNow - s_nNextLog) >= 0)
 	{
 		s_nNextLog = nNow + 2000;
-		VRLog("Weapon view model: game pos (%.2f %.2f %.2f), eye pos (%.2f %.2f %.2f) scale 1/%.1f, two-handed %d",
-			m_vWeaponPos.x, m_vWeaponPos.y, m_vWeaponPos.z, vPos.x, vPos.y, vPos.z, m_fWeaponScale, m_bTwoHanded);
+		VRLog("Weapon view model: game pos (%.2f %.2f %.2f), eye pos (%.2f %.2f %.2f) scale 1/%.1f, two-handed %d, left hand's grip %s(%.1f %.1f %.1f) cm",
+			m_vWeaponPos.x, m_vWeaponPos.y, m_vWeaponPos.z, vPos.x, vPos.y, vPos.z, m_fWeaponScale, m_bTwoHanded,
+			m_bTwoHandGrip ? "" : "unused ", m_vTwoHandGrip.x * 100.0f / g_vtVRWorldScale.GetFloat(),
+			m_vTwoHandGrip.y * 100.0f / g_vtVRWorldScale.GetFloat(), m_vTwoHandGrip.z * 100.0f / g_vtVRWorldScale.GetFloat());
 	}
 }
 
@@ -2488,20 +2583,26 @@ void VRMgr::PlaceLeftArm(HOBJECT hWeapon, WEAPON *pWeapon, int nState)
 		rArm = rArm * m_rArmMirror * m_rArmHand.Conjugate();
 	LTVector vTarget = Rotate(rToModel, m_vOffPos + Rotate(rLeft, m_vArmOffset) - m_vWeaponOrigin) / m_fWeaponScale;
 
-	// Two-handed, the gun points at the left hand, so the barrel runs through its palm: the hand
-	// goes down (the gun's down, which is model space's) under it, eased over a moment.
+	// Two-handed, the gun points at the left hand, so the barrel runs through it. With
+	// TwoHandedHandOnGun the hand snaps to where the weapon's animation holds it (its grip on the
+	// gun, as in the game); otherwise it stays on the controller, moved down (the gun's down, which is
+	// model space's) under the barrel. Either way eased over a moment.
 	LTFLOAT fStep = g_pLTClient->GetFrameTime() / 0.15f;
 	if(m_bTwoHanded)
 		m_fTwoHandBlend = (m_fTwoHandBlend + fStep < 1.0f) ? m_fTwoHandBlend + fStep : 1.0f;
 	else
 		m_fTwoHandBlend = (m_fTwoHandBlend - fStep > 0.0f) ? m_fTwoHandBlend - fStep : 0.0f;
-	vTarget.y -= m_fTwoHandBlend * m_fTwoHandDown / m_fWeaponScale;
+	if(!m_bTwoHandOnGun)
+		vTarget.y -= m_fTwoHandBlend * m_fTwoHandDown / m_fWeaponScale;
 
-	// Part way back from the animation (see m_fArmBlend): the arm turned part of the way and the
-	// palm part of the way to the controller, eased in and out
-	if(m_fArmBlend < 1.0f)
+	// Part way back from the animation (see m_fArmBlend, and two-handed on the gun): the arm turned
+	// part of the way and the palm part of the way to the controller, eased in and out
+	LTFLOAT fToController = m_fArmBlend;
+	if(m_bTwoHandOnGun)
+		fToController *= 1.0f - m_fTwoHandBlend;
+	if(fToController < 1.0f)
 	{
-		LTFLOAT fBlend = m_fArmBlend * m_fArmBlend * (3.0f - 2.0f * m_fArmBlend);
+		LTFLOAT fBlend = fToController * fToController * (3.0f - 2.0f * fToController);
 		LTRotation rNone;
 		rNone.Init();
 		LTRotation rFull = rArm;

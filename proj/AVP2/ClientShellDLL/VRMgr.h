@@ -93,8 +93,11 @@ class VRMgr
 
 		// Call after the cameras have rendered and before flipping the eye image. With
 		// bHudFollows the game must then clear the screen, draw only the HUD and flip again;
-		// that image goes to the headset's HUD panel instead of the monitor.
-		void		SubmitEyes(LTBOOL bHudFollows);
+		// that image goes to the headset's HUD panel instead of the monitor. With bNoteFollows
+		// (CanShowWorldNotes only) one more flip comes before the HUD's: the note alone on black,
+		// which the headset shows fixed in the world.
+		void		SubmitEyes(LTBOOL bHudFollows, LTBOOL bNoteFollows = LTFALSE);
+		LTBOOL		CanShowWorldNotes() const	{ return m_pApi && m_pApi->version >= 12; }
 
 		// Call at the end of the frame's drawing.
 		void		EndFrame();
@@ -205,6 +208,7 @@ class VRMgr
 		void		ReadLeftFit(const char *szWeapon);
 		void		ApplyGunFit();
 		void		ApplyLeftFit();
+		void		ApplyTwoHandFit();
 		LTBOOL		ReadFitLine(const char *szSection, const char *szWeapon, char *szValue, int nSize, const char **pszFrom);
 
 		// Adjust mode (the Adjust button): the sticks fit the current weapon in the right or left
@@ -277,8 +281,9 @@ class VRMgr
 		LTBOOL			m_bAdjustLive;			// avp2xr.ini AdjustHandsLive: the Adjust button turns it on
 		int				m_nAdjustHand;			// 0 = right ([Gun]), 1 = left ([LeftHand]), 2 = the muzzle ([Muzzle])
 		LTBOOL			m_bAdjustMove;			// the sticks move the hand (else turn it)
-		LTFLOAT			m_fAdjustStart[3][6];	// the fits when adjust mode began, for Undo
-		LTBOOL			m_bAdjustChanged[3];	// ...and whether they've changed since
+		LTFLOAT			m_fTwoHandFit[6];		// [TwoHandGrip] <weapon> = forward up right (cm; the rest unused)
+		LTFLOAT			m_fAdjustStart[4][6];	// the fits when adjust mode began, for Undo
+		LTBOOL			m_bAdjustChanged[4];	// ...and whether they've changed since
 		uint32			m_nAdjustShowTime;		// GetTickCount() the values were last shown
 		struct WEAPON	*m_pAdjustWeapon;		// the weapon being fitted
 		unsigned int	m_nAdjustRaw;			// AVP2XR_BTN_* held last frame, before adjust mode takes them
@@ -363,6 +368,13 @@ class VRMgr
 		LTFLOAT			m_fTwoHandDown;			// avp2xr.ini TwoHandedHandDown, world units: the left hand goes this far
 												// below the gun while two-handed, so it doesn't sit in the barrel
 		LTFLOAT			m_fTwoHandBlend;		// 0-1, eases the hand down and back up
+		LTBOOL			m_bTwoHandOnGun;		// avp2xr.ini TwoHandedHandOnGun: two-handed, the left hand goes where the
+												// weapon's animation holds it (on the gun) instead of following the controller
+		LTBOOL			m_bTwoHandGrip;			// m_vTwoHandGrip is set: two-handed, the gun turns so this point is
+		LTVector		m_vTwoHandGrip;			// on the left controller; where the animation's left palm is from the
+												// right hand (grip pose, or aim pose without one), in the gun's frame
+		LTVector		m_vTwoHandMove;			// [TwoHandGrip] for this weapon: m_vTwoHandGrip moved by this (world
+												// units, the gun's frame), so the controller holds the gun elsewhere
 		LTFLOAT			m_fArmBlend;			// 0-1: the arm is the animation's (0, while switching weapons)
 												// or the controller's (1), eased between
 		LTRotation		m_rGripToAim;			// the right controller's aim pose relative to its grip pose
