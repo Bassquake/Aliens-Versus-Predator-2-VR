@@ -901,6 +901,7 @@ static struct ButtonAction
 	{ "nextweapon", "Next weapon", AVP2XR_BTN_NEXTWEAPON, L"NextWeapon", { "right thumbstick up", "right thumbstick up", "right thumbstick up", "right trackpad up", nullptr } },
 	{ "prevweapon", "Previous weapon", AVP2XR_BTN_PREVWEAPON, L"PrevWeapon", { "right thumbstick down", "right thumbstick down", "right thumbstick down", "right trackpad down", nullptr } },
 	{ "adjust", "Hand adjust mode", AVP2XR_BTN_ADJUST, L"Adjust", { nullptr, nullptr, nullptr, nullptr, nullptr } },
+	{ "twohand", "Two-handed grip", AVP2XR_BTN_TWOHAND, L"TwoHand", { "left grip", nullptr, nullptr, nullptr, nullptr } },
 };
 // The sticks (vector actions): movement and snap turn / weapon cycling
 static const char* const g_moveDefaults[5] = { "left thumbstick", "left thumbstick", "left thumbstick", "left trackpad", nullptr };

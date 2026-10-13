@@ -391,15 +391,10 @@ static LTFLOAT YawOf(const LTRotation &rRot)
 	return (LTFLOAT)atan2(-vR.z, vR.x);
 }
 
-// Two-handed aiming engages when the off hand is in front of the gun hand: between these
-// distances (metres) and within this angle of where the gun hand points. It lets go outside
-// the wider limits, so it doesn't flicker at the edges.
-#define VR_TWOHAND_MIN			0.15f
-#define VR_TWOHAND_MAX			0.75f
-#define VR_TWOHAND_ANGLE		40.0f
-#define VR_TWOHAND_RELEASE_MIN	0.10f
-#define VR_TWOHAND_RELEASE_MAX	0.90f
-#define VR_TWOHAND_RELEASE_ANGLE 60.0f
+// Two-handed aiming, while the TwoHand button is held: the off hand must be at least this far
+// (metres) from the gun hand and within this angle of where it points
+#define VR_TWOHAND_MIN			0.05f
+#define VR_TWOHAND_ANGLE		80.0f
 
 // Standard (right-hand rule) cross product. LTVector::Cross returns the reverse.
 static LTVector CrossStd(const LTVector &a, const LTVector &b)
@@ -1273,10 +1268,14 @@ void VRMgr::UpdateButtons()
 	if(m_bAdjusting)
 		nNow = (m_nAdjustHand == 2) ? (nNow & AVP2XR_BTN_FIRE) : 0;	// fitting the muzzle, fire to see it
 
+	// The left hand's gestures below are off while it holds the gun (the TwoHand button, the left
+	// grip), so moving it about on the gun doesn't bring out the hacking device or reload
+	LTBOOL bLeftOnGun = m_bLastFrameInput && (m_Input.buttons & AVP2XR_BTN_TWOHAND) != 0;
+
 	// The hacking device (the H item) comes out with the left hand reached over the left shoulder
 	// (avp2xr.ini ShoulderHack): the Hack button is held for a moment as the hand gets there. The
 	// place, from the head, facing where it faces: VR_SHOULDER_* (metres), a little larger to leave.
-	if(m_bShoulderHack && m_bLastFramePlayerView && m_bLastFrameInput && m_Input.offValid && !m_bAdjusting &&
+	if(m_bShoulderHack && m_bLastFramePlayerView && m_bLastFrameInput && m_Input.offValid && !m_bAdjusting && !bLeftOnGun &&
 	   g_pGameClientShell->GetInterfaceMgr()->GetGameState() == GS_PLAYING)
 	{
 		LTFLOAT fScale = g_vtVRWorldScale.GetFloat();
@@ -1321,7 +1320,7 @@ void VRMgr::UpdateButtons()
 	// then to the gun in the right hand (VR_BACK_*, VR_RELOAD_*): Reload is held for a moment
 	uint32 nTick = GetTickCount();
 	if(m_bReloadGesture && m_bLastFramePlayerView && m_bLastFrameInput && m_bLastFrameAimWorld && m_Input.offValid &&
-	   !m_bAdjusting && g_pGameClientShell->GetInterfaceMgr()->GetGameState() == GS_PLAYING)
+	   !m_bAdjusting && !bLeftOnGun && g_pGameClientShell->GetInterfaceMgr()->GetGameState() == GS_PLAYING)
 	{
 		LTFLOAT fScale = g_vtVRWorldScale.GetFloat();
 		if(fScale <= 0.0f)
@@ -1982,8 +1981,8 @@ void VRMgr::GetEyeCamera(int nEye, HCAMERA hCamera, const LTVector &vPos, const 
 			m_rOffRot = rYaw * FromXr(m_Input.offOrientation) * MirrorX(m_rGripToAim);
 		}
 
-		// Two-handed aiming: with the off hand in front of the gun hand, the gun points from
-		// the gun hand to the off hand, keeping the gun hand's roll. With the hand on the gun
+		// Two-handed aiming: holding TwoHand (the left grip) with the off hand in front of the gun
+		// hand, the gun points from the gun hand to the off hand, keeping the gun hand's roll. With the hand on the gun
 		// (TwoHandedHandOnGun) it turns so the left hand's place on it (m_vTwoHandGrip: the
 		// smartgun's handle, off to the side) is on the line to the off hand, rather than the barrel.
 		// Not with the hacking device: the left hand holds its cable, and snapped to the device.
@@ -2018,12 +2017,12 @@ void VRMgr::GetEyeCamera(int nEye, HCAMERA hCamera, const LTVector &vPos, const 
 			LTFLOAT fMetres = fLen / fScale;
 			LTFLOAT fCos = (fLen > 0.0001f) ? vToOff.Dot(vF) / fLen : -1.0f;
 
-			if(m_bTwoHanded)
-				m_bTwoHanded = fMetres > VR_TWOHAND_RELEASE_MIN && fMetres < VR_TWOHAND_RELEASE_MAX &&
-							   fCos > (LTFLOAT)cos(MATH_DEGREES_TO_RADIANS(VR_TWOHAND_RELEASE_ANGLE));
-			else
-				m_bTwoHanded = fMetres > VR_TWOHAND_MIN && fMetres < VR_TWOHAND_MAX &&
-							   fCos > (LTFLOAT)cos(MATH_DEGREES_TO_RADIANS(VR_TWOHAND_ANGLE));
+			// While the TwoHand button (the left grip) is held, Marine and Predator, with the off hand
+			// somewhere ahead of the gun hand (not beside or behind it, where the aim would swing about)
+			LTBOOL bHeld = (m_Input.buttons & AVP2XR_BTN_TWOHAND) != 0 &&
+						   !IsAlien(g_pGameClientShell->GetPlayerStats()->GetButeSet());
+			m_bTwoHanded = bHeld && fMetres > VR_TWOHAND_MIN &&
+						   fCos > (LTFLOAT)cos(MATH_DEGREES_TO_RADIANS(VR_TWOHAND_ANGLE));
 
 			if(m_bTwoHanded)
 			{

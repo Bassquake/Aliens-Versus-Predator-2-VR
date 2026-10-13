@@ -67,7 +67,8 @@ Stereo (option 2)
   controller's grip pose (API v9, where OpenXR puts the palm) and it points along the aim pose; tune with VRGunScale, default 12
   because the first-person models are built about 1/12 size, VRGunOffsetX/Y/Z, and VRGripX/Y/Z for models
   without hand bones). Two-handed aiming (API v8 off-hand grip pose):
-  with the left hand 15-75 cm ahead of the right and within 40 deg of its aim, the gun and shots aim from
+  while TwoHand (AVP2XR_BTN_TWOHAND, the left grip on Touch; Marine and Predator) is held with the left
+  hand at least 5 cm ahead of the right, within 80 deg of its aim, the gun and shots aim from
   the right hand to the left (VRTwoHanded 0 turns it off). With TwoHandedHandOnGun the left hand snaps to
   the animation's pose and the gun turns so that palm (the smartgun's side handle) is on the left controller,
   moved per weapon by [TwoHandGrip] (or adjust mode's fourth target, "left hand on gun").
