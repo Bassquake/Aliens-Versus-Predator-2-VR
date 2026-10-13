@@ -1320,7 +1320,8 @@ void VRMgr::UpdateButtons()
 	// then to the gun in the right hand (VR_BACK_*, VR_RELOAD_*): Reload is held for a moment
 	uint32 nTick = GetTickCount();
 	if(m_bReloadGesture && m_bLastFramePlayerView && m_bLastFrameInput && m_bLastFrameAimWorld && m_Input.offValid &&
-	   !m_bAdjusting && !bLeftOnGun && g_pGameClientShell->GetInterfaceMgr()->GetGameState() == GS_PLAYING)
+	   !m_bAdjusting && !bLeftOnGun && g_pGameClientShell->GetInterfaceMgr()->GetGameState() == GS_PLAYING &&
+	   !IsPredator(g_pGameClientShell->GetPlayerStats()->GetButeSet()))	// (the Predator's weapons have no clips)
 	{
 		LTFLOAT fScale = g_vtVRWorldScale.GetFloat();
 		if(fScale <= 0.0f)
@@ -2018,9 +2019,16 @@ void VRMgr::GetEyeCamera(int nEye, HCAMERA hCamera, const LTVector &vPos, const 
 			LTFLOAT fCos = (fLen > 0.0001f) ? vToOff.Dot(vF) / fLen : -1.0f;
 
 			// While the TwoHand button (the left grip) is held, Marine and Predator, with the off hand
-			// somewhere ahead of the gun hand (not beside or behind it, where the aim would swing about)
-			LTBOOL bHeld = (m_Input.buttons & AVP2XR_BTN_TWOHAND) != 0 &&
-						   !IsAlien(g_pGameClientShell->GetPlayerStats()->GetButeSet());
+			// somewhere ahead of the gun hand (not beside or behind it, where the aim would swing about).
+			// The Predator only with the spear and the speargun.
+			uint32 nButeSet = g_pGameClientShell->GetPlayerStats()->GetButeSet();
+			LTBOOL bHeld = (m_Input.buttons & AVP2XR_BTN_TWOHAND) != 0 && !IsAlien(nButeSet);
+			if(bHeld && IsPredator(nButeSet))
+			{
+				CWeaponModel *pWeaponModel = g_pGameClientShell->GetWeaponModel();
+				WEAPON *pWep = pWeaponModel ? pWeaponModel->GetWeapon() : LTNULL;
+				bHeld = pWep && (!stricmp(pWep->szName, "Spear") || !stricmp(pWep->szName, "Spear_Gun"));
+			}
 			m_bTwoHanded = bHeld && fMetres > VR_TWOHAND_MIN &&
 						   fCos > (LTFLOAT)cos(MATH_DEGREES_TO_RADIANS(VR_TWOHAND_ANGLE));
 
