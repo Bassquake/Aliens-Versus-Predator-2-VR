@@ -452,7 +452,8 @@ class CInterfaceMgr
 		void		CreatePauseBackground();
 		void		ResetMenuOffset(){m_ptMenuOffset.x=0;m_ptMenuOffset.y=0;}
 		void		UpdateActivate(LTVector vPos, LTVector vDir);
-		XHairMode	FindActivateMode(LTVector vPos, LTVector vDir);	// what's activatable along the ray
+		XHairMode	FindActivateMode(LTVector vPos, LTVector vDir,	// what's activatable along the ray
+									 LTVector *pHit = LTNULL, LTVector *pNormal = LTNULL);	// ...and where it hit
 		void		HandleExitLevel(HMESSAGEREAD hMessage);
 		void		HandleLoadNewLevel();
 		void		DrawObjectives();

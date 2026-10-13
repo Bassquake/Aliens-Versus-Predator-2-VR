@@ -68,7 +68,16 @@ Stereo (option 2)
   because the first-person models are built about 1/12 size, VRGunOffsetX/Y/Z, and VRGripX/Y/Z for models
   without hand bones). Two-handed aiming (API v8 off-hand grip pose):
   with the left hand 15-75 cm ahead of the right and within 40 deg of its aim, the gun and shots aim from
-  the right hand to the left (VRTwoHanded 0 turns it off).
+  the right hand to the left (VRTwoHanded 0 turns it off). With TwoHandedHandOnGun the left hand snaps to
+  the animation's pose and the gun turns so that palm (the smartgun's side handle) is on the left controller,
+  moved per weapon by [TwoHandGrip] (or adjust mode's fourth target, "left hand on gun").
+  Hacking device (mHackingtool_pv): the game has the device in the right hand and the cable's plug in
+  the left. vrrez has a mirrored copy (tools\mirrorhack.py, from the one in AVP2.REZ; the arms' node
+  names swapped), so the left hand holds the device and the right the plug. The device's nodes off the
+  root move with the left arm (m_mArm); each cable node (jnt77_1-13) goes part of the way with it, less
+  along the cable, the plug's not at all (VRMgr::HackCableNodeControl). It's aimed from the right
+  controller (the plug goes to the panel) and has no two-handed aiming. In VR a hack, weld or cut target
+  looked at only shows its crosshair for the tool in hand (InterfaceMgr), at where the tool points.
   Turning: right stick left/right, avp2xr.ini TurnMode=smooth (SmoothTurnSpeed deg/s at full push, default)
   or snap (SnapTurnAngle degrees per push).
   Use: acts on what the head looks at, from the head's real position (CInterfaceMgr::FindUseTarget). With
@@ -129,6 +138,15 @@ Markers (API version 11)
   size, angle and alpha per eye (SetMarkerImage once, SubmitMarkers per frame). The proxy draws them
   over the eyes at the headset's resolution (DrawMarkers: turned quads, scissored to the eye), under the
   crosshair. With an older proxy cshell draws them into the eyes itself, in the game's pixels (blocky).
+
+Notes (API version 12)
+  Notes the player reads (story objects, StoryElement.cpp) were on the head-locked HUD. In stereo cshell
+  now draws a note alone in a flip of its own between the eyes' and the HUD's (SubmitStereo with
+  AVP2XR_HUD_NOTE_FOLLOWS) and leaves it off the HUD image. The proxy makes it a third panel like the
+  HUD's (same size, under it), placed in LOCAL space HudDistance ahead of where the head looked when the
+  note appeared (yaw and pitch, no roll), until a frame without the flag. avp2xr.ini WorldNotes=no keeps
+  it head-locked. The monitor mirror shows it under the HUD. An older proxy gets no flag and the note
+  stays on the HUD.
 
 Internet server list
   The game's own list came from Sierra's WON servers (gone since 2004), as did its CD key check, so

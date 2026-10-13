@@ -66,6 +66,11 @@ static VarTrack		g_vtVRFlashForward;
 #define VR_ARM_RELEASE_TIME		0.15f
 #define VR_ARM_RETURN_TIME		0.3f
 
+// The hacking device's plug: seconds to go onto the panel it hacks and back, and how far its tip is
+// past its last node along the cable (model units, from the model: the node stays that far out)
+#define VR_HACK_ATTACH_TIME		0.15f
+#define VR_HACK_PLUG_TIP		0.26f
+
 // How far off where the head looks Use finds things, degrees (avp2xr.ini UseAngle)
 #define VR_DEFAULT_USE_ANGLE	10.0f
 #define VR_MAX_USE_ANGLE		30.0f
@@ -265,6 +270,14 @@ static const MuzzleNode s_MuzzleNodes[] =
 	{ "phackingdevice_pv.abc", "r_pointer4", "Flash" },
 };
 #define VR_DEFAULT_FLASH_DEPTH	0.24f
+
+// The Marine hacking device (VRMgr::m_bHackCable, its model mirrored by tools/mirrorhack.py): the
+// device's nodes off the root, which go with the left arm, and the cable's from the device end to the
+// plug the right hand holds, each the child of the one before (tools/armpieces.py)
+static const char *s_szHackModel = "mhackingtool_pv.abc";
+static const char *s_szHackDevice[] = { "jnt80_1", "Display_zTex2", "Ok_zTex0", "Looper_zTex3" };
+static const char *s_szHackCable[] = { "jnt77_1", "jnt77_2", "jnt77_3", "jnt77_4", "jnt77_5", "jnt77_6", "jnt77_7",
+	"jnt77_8", "jnt77_9", "jnt77_10", "jnt77_11", "jnt77_12", "jnt77_13" };
 
 // The flash is sized for the game's flash position, so moved in to the muzzle it's shrunk by
 // how much nearer that is, which keeps its flat-screen size next to the gun. In VR you sight
@@ -557,6 +570,18 @@ VRMgr::VRMgr()
 	m_vOffPos.Init();
 	m_rOffRot.Init();
 	m_bLeftMatch = LTTRUE;
+	m_bHackModel = m_bHackCable = LTFALSE;
+	m_nHackLink = -1;
+	m_bHackTarget = LTFALSE;
+	m_vHackTarget.Init();
+	m_vHackNormal.Init();
+	m_fHackAttach = 0.0f;
+	m_bHackPlugSeen = LTFALSE;
+	m_vHackPlugTo.Init();
+	m_vHackPlugN.Init();
+	m_vHackPivot.Init();
+	m_vHackBend.Init();
+	m_rHackBend.Init();
 	m_bArmForcePose = LTTRUE;
 	m_szIni[0] = 0;
 	m_vArmOffset.Init();
@@ -1836,8 +1861,9 @@ void VRMgr::GetEyeCamera(int nEye, HCAMERA hCamera, const LTVector &vPos, const 
 		// the gun hand to the off hand, keeping the gun hand's roll. With the hand on the gun
 		// (TwoHandedHandOnGun) it turns so the left hand's place on it (m_vTwoHandGrip: the
 		// smartgun's handle, off to the side) is on the line to the off hand, rather than the barrel.
-		m_bTwoHanded = m_bTwoHanded && m_Input.offValid;
-		if(m_Input.offValid && g_vtVRTwoHanded.GetFloat() != 0.0f)
+		// Not with the hacking device: the left hand holds its cable, and snapped to the device.
+		m_bTwoHanded = m_bTwoHanded && m_Input.offValid && !m_bHackModel;
+		if(m_Input.offValid && g_vtVRTwoHanded.GetFloat() != 0.0f && !m_bHackModel)
 		{
 			LTVector vOff = vPos + Rotate(rYaw, FromXrPos(m_Input.offPosition, ref) * fScale);
 			LTVector vR, vU, vF;
@@ -2267,6 +2293,11 @@ void VRMgr::PlaceWeapon()
 	// position) fire from the controller.
 	m_vShotPos = (bMuzzle || vFlatFlash.MagSqr() > 0.01f) ? m_vMuzzlePos : m_vAimPos;
 
+	// The hacking device is aimed with the hand holding the cable's plug, which goes to the panel: the
+	// right one (the model is mirrored, see tools/mirrorhack.py), so from the controller itself
+	if(m_bHackModel)
+		m_vShotPos = m_vAimPos;
+
 	// Where the shots go, for the crosshair
 	m_bCrosshairHit = LTFALSE;
 	CCrosshairMgr *pCrosshair = g_pGameClientShell->GetInterfaceMgr()->GetCrosshairMgr();
@@ -2500,6 +2531,63 @@ void VRMgr::PlaceLeftArm(HOBJECT hWeapon, WEAPON *pWeapon, int nState)
 	else
 		m_fArmBlend = (m_fArmBlend + fFrameTime / VR_ARM_RETURN_TIME < 1.0f) ? m_fArmBlend + fFrameTime / VR_ARM_RETURN_TIME : 1.0f;
 
+	// The hacking device's plug onto the panel while it hacks (fire held, pointed at something to
+	// hack), and back into the hand after: the move and turn that take the plug (as the last pass had
+	// it) to its place on the panel, its tip touching it, part of the way while it eases on or off
+	LTBOOL bAttach = m_bHackCable && m_bHackTarget && IsButtonHeld(AVP2XR_BTN_FIRE);
+	LTFLOAT fAttachStep = fFrameTime / VR_HACK_ATTACH_TIME;
+	if(bAttach)
+		m_fHackAttach = (m_fHackAttach + fAttachStep < 1.0f) ? m_fHackAttach + fAttachStep : 1.0f;
+	else
+		m_fHackAttach = (m_fHackAttach - fAttachStep > 0.0f) ? m_fHackAttach - fAttachStep : 0.0f;
+	if(bAttach && m_fWeaponScale > 0.0f)
+	{
+		// The place on the panel in model space (kept while easing off, with the hand moving away)
+		LTRotation rToModel = m_rAimRot.Conjugate();
+		m_vHackPlugTo = Rotate(rToModel, m_vHackTarget - m_vWeaponOrigin) / m_fWeaponScale;
+		m_vHackPlugN = Rotate(rToModel, m_vHackNormal);
+	}
+	m_vHackBend.Init();
+	m_rHackBend.Init();
+	if(m_fHackAttach > 0.0f && m_bHackCable && m_bHackPlugSeen && m_vHackPlugN.MagSqr() > 0.0001f)
+	{
+		LTVector vPlug, vBefore;
+		m_mHackU[HACK_CABLE - 1].GetTranslation(vPlug);
+		m_mHackU[HACK_CABLE - 2].GetTranslation(vBefore);
+		LTVector vN = m_vHackPlugN;
+		vN.Norm();
+		// The plug points along the cable's last piece; turned to point into the panel
+		LTRotation rTurn;
+		rTurn.Init();
+		LTVector vDir = vPlug - vBefore;
+		if(vDir.MagSqr() > 0.000001f)
+		{
+			vDir.Norm();
+			LTVector vInto = -vN;
+			LTFLOAT fDot = vDir.Dot(vInto);
+			LTVector vAxis = CrossStd(vDir, vInto);
+			if(fDot < -0.9999f)
+			{
+				// Turned right round: about any axis across it
+				vAxis = CrossStd(vDir, fabs(vDir.y) < 0.9f ? LTVector(0.0f, 1.0f, 0.0f) : LTVector(1.0f, 0.0f, 0.0f));
+				vAxis.Norm();
+				rTurn = LTRotation(vAxis.x, vAxis.y, vAxis.z, 0.0f);
+			}
+			else
+			{
+				LTFLOAT fW = 1.0f + fDot;
+				LTFLOAT fLen = (LTFLOAT)sqrt(vAxis.MagSqr() + fW * fW);
+				rTurn = LTRotation(vAxis.x / fLen, vAxis.y / fLen, vAxis.z / fLen, fW / fLen);
+			}
+		}
+		LTFLOAT fBlend = m_fHackAttach * m_fHackAttach * (3.0f - 2.0f * m_fHackAttach);
+		LTRotation rNone;
+		rNone.Init();
+		g_pLTClient->InterpolateRotation(&m_rHackBend, &rNone, &rTurn, fBlend);
+		m_vHackPivot = vPlug;
+		m_vHackBend = (m_vHackPlugTo + vN * VR_HACK_PLUG_TIP - vPlug) * fBlend;
+	}
+
 	// Without the left controller (or a left arm) the arm's move stops; otherwise the last one
 	// stays until this one is worked out
 	if(!m_bLeftArm || !m_bOffWorld || m_hArmRoot == INVALID_MODEL_NODE)
@@ -2668,6 +2756,10 @@ void VRMgr::PlaceLeftArm(HOBJECT hWeapon, WEAPON *pWeapon, int nState)
 	}
 	LTransform tPosed;
 	pModelLT->GetNodeTransform(hWeapon, m_hArmHand[0], tPosed, LTFALSE);
+	// The hacking device's cable plug too, in case the engine only works out the nodes on the way to the
+	// one asked for: the device and cable move with the arm in this pose as well
+	if(m_bHackCable)
+		pModelLT->GetNodeTransform(hWeapon, m_hHackCable[HACK_CABLE - 1], tPosed, LTFALSE);
 	if(bRestoreTime)
 		pModelLT->SetCurAnimTime(pTracker, nRestoreTime);
 	LTBOOL bForced = m_nArmPasses[0] > nPassesBefore;
@@ -2716,6 +2808,7 @@ void VRMgr::LeftArmNodeControl(HOBJECT hObj, HMODELNODE hNode, LTMatrix *pGlobal
 			pMgr->m_mArmPassMove = pMgr->m_mArmPass * pMgr->m_mArm * pMgr->m_mArmPassInv;
 			pMgr->m_bArmApplied = LTTRUE;
 		}
+		pMgr->m_nHackLink = 0;
 		return;
 	}
 	if(hNode == pMgr->m_hArmRoot)
@@ -2726,6 +2819,8 @@ void VRMgr::LeftArmNodeControl(HOBJECT hObj, HMODELNODE hNode, LTMatrix *pGlobal
 	}
 	if(!pMgr->m_bArmPass)
 		return;
+	if(pMgr->m_bHackCable && pMgr->m_bArmApplied)
+		pMgr->HackCableNodeControl(hNode, pGlobalMat);
 	for(int h = 0; h < 4; h++)
 	{
 		if(hNode != pMgr->m_hArmHand[h])
@@ -2741,6 +2836,95 @@ void VRMgr::LeftArmNodeControl(HOBJECT hObj, HMODELNODE hNode, LTMatrix *pGlobal
 			pMgr->m_bArmSeen = LTTRUE;	// the fingers follow in the same pass (they're below the wrist)
 		break;
 	}
+}
+
+// The hacking device (its model mirrored: the left hand holds the device, the right the cable's
+// plug), in LeftArmNodeControl's pass with the arm moved. The device's nodes off the root move with
+// the arm, as its root does (the rest of the device follows them). Each cable node goes from where
+// the arm's move takes it (with the device) part of the way back to where the animation has it, more
+// along the cable, so its end (the plug) stays in the right hand. Done in model space. The engine
+// gives each node from its parent as moved, so the node as animated is worked out from the parent's:
+// U(k) = U(k-1) Mod(k-1)^-1 In(k), and the first from the device's move.
+void VRMgr::HackCableNodeControl(HMODELNODE hNode, LTMatrix *pGlobalMat)
+{
+	for(int d = 0; d < HACK_DEVICE; d++)
+	{
+		if(hNode != m_hHackDevice[d])
+			continue;
+		*pGlobalMat = m_mArmPassMove * (*pGlobalMat);
+		return;
+	}
+	if(m_nHackLink < 0 || m_nHackLink >= HACK_CABLE || hNode != m_hHackCable[m_nHackLink])
+	{
+		for(int c = 0; c < HACK_CABLE; c++)
+			if(hNode == m_hHackCable[c])
+				m_nHackLink = -1;	// out of the order expected: the rest is left as it is
+		return;
+	}
+	int k = m_nHackLink;
+	LTMatrix mIn = m_mArmPassInv * (*pGlobalMat);
+	LTMatrix mU;
+	if(k > 0)
+	{
+		LTMatrix mParent = m_mHackU[k - 1] * m_mHackModInv[k - 1];
+		mU = mParent * mIn;
+	}
+	else
+	{
+		LTMatrix mArmInv = m_mArm.MakeInverse();
+		mU = mArmInv * mIn;
+	}
+
+	// Part of the way with the arm: turned by that part of its turn, about the node, and moved by that
+	// part of the node's move. The last two nodes stay as animated: the plug's vertices are on both.
+	LTFLOAT t = (LTFLOAT)(k + 1) / (LTFLOAT)(HACK_CABLE - 1);
+	if(t > 1.0f)
+		t = 1.0f;
+	LTFLOAT w = 1.0f - t * t * (3.0f - 2.0f * t);
+	LTMatrix mMoved = m_mArm * mU;
+	LTVector vFrom, vTo, vR, vU, vF;
+	mU.GetTranslation(vFrom);
+	mMoved.GetTranslation(vTo);
+	m_mArm.GetBasisVectors(&vR, &vU, &vF);
+	LTRotation rArm = QuatFromBasis(vR, vU, vF), rNone, rPart;
+	// The short way round: q and -q are the same turn, but part of the way from none they aren't, and
+	// which one QuatFromBasis gives can change from frame to frame (the cable flicked about)
+	if(rArm.m_Quat[3] < 0.0f)
+		rArm = LTRotation(-rArm.m_Quat[0], -rArm.m_Quat[1], -rArm.m_Quat[2], -rArm.m_Quat[3]);
+	rNone.Init();
+	g_pLTClient->InterpolateRotation(&rPart, &rNone, &rArm, w);
+	LTMatrix mTurn;
+	g_pLTClient->GetMathLT()->SetupRotationMatrix(mTurn, rPart);
+	LTMatrix mMod = mU;
+	mMod.SetTranslation(0.0f, 0.0f, 0.0f);
+	mMod = mTurn * mMod;
+	mMod.SetTranslation(vFrom + (vTo - vFrom) * w);
+
+	// Onto the panel it hacks (m_vHackBend/m_rHackBend, see PlaceLeftArm): the plug (the last two
+	// nodes) all the way, the cable less back along it. Turned about the plug, so the plug's two
+	// nodes keep together.
+	if(m_fHackAttach > 0.0f)
+	{
+		LTFLOAT v = 1.0f - w;
+		LTRotation rBend;
+		g_pLTClient->InterpolateRotation(&rBend, &rNone, &m_rHackBend, v);
+		LTMatrix mBend;
+		g_pLTClient->GetMathLT()->SetupRotationMatrix(mBend, rBend);
+		LTVector vPos, vTurned;
+		mMod.GetTranslation(vPos);
+		mBend.Apply3x3(vPos - m_vHackPivot, vTurned);
+		mMod.SetTranslation(0.0f, 0.0f, 0.0f);
+		mMod = mBend * mMod;
+		mMod.SetTranslation(m_vHackPivot + vTurned + m_vHackBend * v);
+	}
+	if(k == HACK_CABLE - 1)
+		m_bHackPlugSeen = LTTRUE;
+
+	// (MakeInverse, not MakeInverseTransform: that one left the cable jittering)
+	m_mHackU[k] = mU;
+	m_mHackModInv[k] = mMod.MakeInverse();
+	m_nHackLink = k + 1;
+	*pGlobalMat = m_mArmPass * mMod;
 }
 
 // The weapon model with its left arm drawn as a copy: each node's transform relative to the root
@@ -2847,6 +3031,33 @@ void VRMgr::OnWeaponModelFiles(HOBJECT hWeapon, const ObjectCreateStruct *pStruc
 	if(szBase2 > szBase)
 		szBase = szBase2;
 	szBase = szBase ? szBase + 1 : szFile;
+
+	// The hacking device: its device and cable nodes, to put the device in the left hand (the vrrez
+	// copy of its model is mirrored) with the cable running to the plug in the right
+	m_bHackCable = LTFALSE;
+	m_bHackPlugSeen = LTFALSE;
+	m_fHackAttach = 0.0f;
+	m_bHackModel = !stricmp(szBase, s_szHackModel);
+	if(m_bHackModel)
+	{
+		int nFound = 0;
+		for(int i = 0; i < HACK_DEVICE + HACK_CABLE; i++)
+		{
+			const char *szName = i < HACK_DEVICE ? s_szHackDevice[i] : s_szHackCable[i - HACK_DEVICE];
+			char szHidden[64];
+			sprintf(szHidden, "_zN_%s", szName);
+			const char *szNames[2] = { szName, szHidden };
+			HMODELNODE hNode = FindNodeHandle(hWeapon, szNames, 2, LTNULL);
+			if(i < HACK_DEVICE)
+				m_hHackDevice[i] = hNode;
+			else
+				m_hHackCable[i - HACK_DEVICE] = hNode;
+			nFound += hNode != INVALID_MODEL_NODE;
+		}
+		m_bHackCable = nFound == HACK_DEVICE + HACK_CABLE;
+		VRLog("Hacking device: %d of %d device and cable nodes found; %s", nFound, HACK_DEVICE + HACK_CABLE,
+			m_bHackCable ? "the device goes with the left hand" : "left as the game has it");
+	}
 
 	// The node to use as its muzzle, if it has one (s_MuzzleNodes), and the socket for its flash
 	m_hMuzzleNode = INVALID_MODEL_NODE;

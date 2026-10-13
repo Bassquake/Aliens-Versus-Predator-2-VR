@@ -915,19 +915,29 @@ void CInterfaceMgr::UpdatePlayingState()
 	WEAPON* pActWep = g_pGameClientShell->GetWeaponModel()->GetWeapon();
 	LTVector vAimPos;
 	LTRotation rAim;
+	LTBOOL bVRAim = g_pGameClientShell->GetVRMgr()->GetAimPose(vAimPos, rAim);
+	// Otherwise a hack, weld or cut target looked at isn't shown: it's only for the tool, and its
+	// head-locked crosshair took the place of the weapon's at the aim (switching from the hacking
+	// device to a gun in front of the panel left the crosshair stuck to the head)
+	if(bVRAim && (eActMode == XHM_MARINE_HACK || eActMode == XHM_MARINE_WELD || eActMode == XHM_MARINE_CUT))
+		eActMode = XHM_TARGETING;
+	LTBOOL bHackTarget = LTFALSE;
+	LTVector vToolHit(0.0f, 0.0f, 0.0f), vToolNormal(0.0f, 0.0f, 0.0f);
 	if(pActWep && (!stricmp(pActWep->szName, "MarineHackingDevice") || !stricmp(pActWep->szName, "PredatorHackingDevice") ||
-				   !stricmp(pActWep->szName, "Blowtorch")) &&
-	   g_pGameClientShell->GetVRMgr()->GetAimPose(vAimPos, rAim))
+				   !stricmp(pActWep->szName, "Blowtorch")) && bVRAim)
 	{
 		DVector vAU, vAR, vAF;
 		g_pLTClient->GetRotationVectors(&rAim, &vAU, &vAR, &vAF);
-		XHairMode eToolMode = FindActivateMode(vAimPos, vAF);
+		XHairMode eToolMode = FindActivateMode(vAimPos, vAF, &vToolHit, &vToolNormal);
 		if(eToolMode == XHM_MARINE_HACK || eToolMode == XHM_MARINE_WELD || eToolMode == XHM_MARINE_CUT)
 		{
 			eActMode = eToolMode;
 			bToolAim = LTTRUE;
+			bHackTarget = eToolMode == XHM_MARINE_HACK;
 		}
 	}
+	// The hacking device's plug goes onto the panel while it hacks
+	g_pGameClientShell->GetVRMgr()->SetHackTarget(bHackTarget, vToolHit, vToolNormal);
 	m_pCrosshairMgr->SetVRToolAim(bToolAim);
 	m_pCrosshairMgr->SetActivateMode(eActMode);
 
@@ -5323,7 +5333,7 @@ void CInterfaceMgr::UpdateActivate(LTVector vPos, LTVector vDir)
 	m_pCrosshairMgr->SetActivateMode(FindActivateMode(vPos, vDir));
 }
 
-XHairMode CInterfaceMgr::FindActivateMode(LTVector vPos, LTVector vDir)
+XHairMode CInterfaceMgr::FindActivateMode(LTVector vPos, LTVector vDir, LTVector *pHit, LTVector *pNormal)
 {
 	// Cast ray to see if there is an object to activate...
 	uint32 nButeSet = g_pGameClientShell->GetPlayerStats()->GetButeSet();
@@ -5353,6 +5363,10 @@ XHairMode CInterfaceMgr::FindActivateMode(LTVector vPos, LTVector vDir)
 
 	if (g_pLTClient->IntersectSegment(&IQuery, &IInfo))
 	{
+		if(pHit)
+			*pHit = IInfo.m_Point;
+		if(pNormal)
+			*pNormal = IInfo.m_Plane.m_Normal;
 		switch(GetActivateType(IInfo.m_hObject))
 		{
 		case (AT_NORMAL):	eRval = XHM_DEFAULT_ACTIVATE;	break;

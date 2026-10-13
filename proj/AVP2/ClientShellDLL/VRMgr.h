@@ -180,6 +180,11 @@ class VRMgr
 		void		AddMarker(const char *szImage, HSURFACE hImage, int nEye, LTFLOAT fX, LTFLOAT fY,
 							  LTFLOAT fHalfW, LTFLOAT fHalfH, LTFLOAT fAngle, LTFLOAT fAlpha);
 
+		// Each frame (CInterfaceMgr): the hacking device points at something it can hack, where its
+		// ray hit it (world) and the surface's normal there. Its plug goes there while it hacks.
+		void		SetHackTarget(LTBOOL bOn, const LTVector &vPoint, const LTVector &vNormal)
+						{ m_bHackTarget = bOn; m_vHackTarget = vPoint; m_vHackNormal = vNormal; }
+
 		void		PlaceWeaponForEye(const LTVector &vEyePos, const LTRotation &rEyeRot, LTFLOAT fFOVX, LTFLOAT fFOVY);
 		void		RestoreWeapon();
 
@@ -194,6 +199,7 @@ class VRMgr
 		void		PlaceRailOverlay(const LTVector &vEyePos, const LTRotation &rEyeRot);
 		void		PlaceArmCopy(HOBJECT hWeapon, const LTVector &vMove, const LTRotation &rArm);
 		static void	LeftArmNodeControl(HOBJECT hObj, HMODELNODE hNode, LTMatrix *pGlobalMat, void *pUserData);
+		void		HackCableNodeControl(HMODELNODE hNode, LTMatrix *pGlobalMat);
 		static void	WeaponPoseNodeControl(HOBJECT hObj, HMODELNODE hNode, LTMatrix *pGlobalMat, void *pUserData);
 		static void	ArmCopyNodeControl(HOBJECT hObj, HMODELNODE hNode, LTMatrix *pGlobalMat, void *pUserData);
 		void		UpdateButtons();
@@ -404,6 +410,31 @@ class VRMgr
 		LTMatrix		m_mArmPassMove;
 		LTBOOL			m_bArmSeen;				// the node control has seen the wrist since the weapon changed
 		LTVector		m_vArmSeen[4];			// ...as animated (model space, before m_mArm)
+
+		// The Marine hacking device, mirrored for VR (vrrez copy, tools/mirrorhack.py): the left hand
+		// holds the device and the right hand the cable's plug. The device's nodes move with the left
+		// arm (m_mArm); the cable's bones go part of the way with it, less along the cable, so it runs
+		// from the device to the plug, which stays in the right hand (HackCableNodeControl).
+		enum { HACK_CABLE = 13, HACK_DEVICE = 4 };
+		LTBOOL			m_bHackModel;			// the weapon model is the hacking device (no two-handed aiming)
+		LTBOOL			m_bHackCable;			// ...and its nodes were found
+		HMODELNODE		m_hHackDevice[HACK_DEVICE];	// the device's nodes off the root (jnt80_1 and the screens')
+		HMODELNODE		m_hHackCable[HACK_CABLE];	// jnt77_1 to the plug (jnt77_13), each the one before's child
+		int				m_nHackLink;			// the cable node expected next in this pass
+		LTMatrix		m_mHackU[HACK_CABLE];	// the cable as animated in this pass (model space)
+		LTMatrix		m_mHackModInv[HACK_CABLE];	// ...and as moved, inverted
+		// While it hacks, the plug goes onto the panel (SetHackTarget): the last two nodes moved there
+		// and turned to point into it, the cable bending to it, eased on and off
+		LTBOOL			m_bHackTarget;			// pointed at something to hack, at (world):
+		LTVector		m_vHackTarget;
+		LTVector		m_vHackNormal;
+		LTFLOAT			m_fHackAttach;			// 0 = the plug in the hand, 1 = on the panel
+		LTVector		m_vHackPlugTo;			// where the plug goes, model space
+		LTVector		m_vHackPlugN;			// ...the panel's normal there
+		LTBOOL			m_bHackPlugSeen;		// a pass has posed the whole cable (m_mHackU is set)
+		LTVector		m_vHackPivot;			// the plug as animated (the last pass), turned about
+		LTVector		m_vHackBend;			// this frame's move of the plug
+		LTRotation		m_rHackBend;			// ...and turn
 
 		// Models whose left arm is in pieces of its own draw it as a second copy of the model placed at
 		// the left controller (so it's lit from its own side), with those pieces hidden on the weapon
