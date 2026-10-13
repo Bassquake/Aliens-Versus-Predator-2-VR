@@ -66,6 +66,18 @@ static VarTrack		g_vtVRFlashForward;
 #define VR_ARM_RELEASE_TIME		0.15f
 #define VR_ARM_RETURN_TIME		0.3f
 
+// The left hand over the left shoulder brings out the hacking device (H): where, from the head and
+// facing where it faces (metres: right, up, forward), how much further out it must go to count as
+// gone again, and how long H is held
+#define VR_SHOULDER_LEFT_MIN	-0.05f
+#define VR_SHOULDER_LEFT_MAX	-0.40f
+#define VR_SHOULDER_DOWN		-0.35f
+#define VR_SHOULDER_UP			0.15f
+#define VR_SHOULDER_BACK		-0.40f
+#define VR_SHOULDER_FORWARD		0.05f
+#define VR_SHOULDER_LEAVE		0.05f
+#define VR_SHOULDER_PRESS_MS	150
+
 // The hacking device's plug: seconds to go onto the panel it hacks and back, and how far its tip is
 // past its last node along the cable (model units, from the model: the node stays that far out)
 #define VR_HACK_ATTACH_TIME		0.15f
@@ -570,6 +582,9 @@ VRMgr::VRMgr()
 	m_vOffPos.Init();
 	m_rOffRot.Init();
 	m_bLeftMatch = LTTRUE;
+	m_bShoulderHack = LTTRUE;
+	m_bShoulderIn = LTFALSE;
+	m_nShoulderUntil = 0;
 	m_bHackModel = m_bHackCable = LTFALSE;
 	m_nHackLink = -1;
 	m_bHackTarget = LTFALSE;
@@ -856,6 +871,9 @@ LTBOOL VRMgr::FindApi()
 					VRLog("Settings: LeftArmForcePose=no (diagnostic: the idle left arm won't follow the controller)");
 				GetPrivateProfileStringA("VR", "LeftHandMatch", "yes", szValue, sizeof(szValue), szIni);
 				m_bLeftMatch = !szValue[0] || !strchr("nN0fF", szValue[0]);
+				GetPrivateProfileStringA("VR", "ShoulderHack", "yes", szValue, sizeof(szValue), szIni);
+				m_bShoulderHack = !szValue[0] || !strchr("nN0fF", szValue[0]);
+				VRLog("Settings: ShoulderHack=%s", m_bShoulderHack ? "yes" : "no");
 				strncpy(m_szIni, szIni, sizeof(m_szIni) - 1);
 				m_szIni[sizeof(m_szIni) - 1] = 0;
 				VRLog("Settings: LeftArm=%s LeftHandMatch=%s LeftHandForward=%.1f LeftHandUp=%.1f LeftHandRight=%.1f (cm) "
@@ -1239,6 +1257,50 @@ void VRMgr::UpdateButtons()
 	UpdateAdjust(nNow, nRawPressed);
 	if(m_bAdjusting)
 		nNow = (m_nAdjustHand == 2) ? (nNow & AVP2XR_BTN_FIRE) : 0;	// fitting the muzzle, fire to see it
+
+	// The hacking device (the H item) comes out with the left hand reached over the left shoulder
+	// (avp2xr.ini ShoulderHack): the Hack button is held for a moment as the hand gets there. The
+	// place, from the head, facing where it faces: VR_SHOULDER_* (metres), a little larger to leave.
+	if(m_bShoulderHack && m_bLastFramePlayerView && m_bLastFrameInput && m_Input.offValid && !m_bAdjusting &&
+	   g_pGameClientShell->GetInterfaceMgr()->GetGameState() == GS_PLAYING)
+	{
+		LTFLOAT fScale = g_vtVRWorldScale.GetFloat();
+		LTVector v = Rotate(YawRotation(m_fHeadYaw).Conjugate(), m_vOffPos - m_vHeadWorld) / (fScale > 0.0f ? fScale : 1.0f);
+		LTFLOAT m = m_bShoulderIn ? VR_SHOULDER_LEAVE : 0.0f;
+		LTBOOL bIn = v.x > VR_SHOULDER_LEFT_MAX - m && v.x < VR_SHOULDER_LEFT_MIN + m &&
+					 v.y > VR_SHOULDER_DOWN - m && v.y < VR_SHOULDER_UP + m &&
+					 v.z > VR_SHOULDER_BACK - m && v.z < VR_SHOULDER_FORWARD + m;
+		if(bIn && !m_bShoulderIn)
+		{
+			// With the hacking device already out it's put away, back to the last weapon used
+			CWeaponModel *pWeaponModel = g_pGameClientShell->GetWeaponModel();
+			WEAPON *pWep = pWeaponModel ? pWeaponModel->GetWeapon() : LTNULL;
+			LTBOOL bOut = pWep && (!stricmp(pWep->szName, "MarineHackingDevice") || !stricmp(pWep->szName, "PredatorHackingDevice"));
+			if(bOut)
+			{
+				if(g_pGameClientShell->GetPlayerStats()->GetHealthCount() > 0)
+					pWeaponModel->LastWeapon();
+			}
+			else
+			{
+				m_nShoulderUntil = GetTickCount() + VR_SHOULDER_PRESS_MS;
+				if(!m_nShoulderUntil)
+					m_nShoulderUntil = 1;
+			}
+			VRLog("Shoulder: left hand over the left shoulder (%.2f %.2f %.2f m from the head): %s", v.x, v.y, v.z,
+				bOut ? "the last weapon" : "H");
+		}
+		m_bShoulderIn = bIn;
+	}
+	else
+		m_bShoulderIn = LTFALSE;
+	if(m_nShoulderUntil)
+	{
+		if((int32)(GetTickCount() - m_nShoulderUntil) < 0)
+			nNow |= AVP2XR_BTN_HACK;
+		else
+			m_nShoulderUntil = 0;
+	}
 
 	m_nIgnoreButtons &= nNow;
 	nNow &= ~m_nIgnoreButtons;

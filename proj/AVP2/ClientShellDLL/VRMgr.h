@@ -368,6 +368,9 @@ class VRMgr
 		LTRotation		m_rOffRot;				// its frame for the hand, like m_rAimRot for the right hand (before the angle)
 		LTBOOL			m_bArmForcePose;		// avp2xr.ini LeftArmForcePose (diagnostic): pose the idle model each frame
 		LTBOOL			m_bLeftMatch;			// avp2xr.ini LeftHandMatch: turn the hand to mirror the right one
+		LTBOOL			m_bShoulderHack;		// avp2xr.ini ShoulderHack: the left hand over the left shoulder is H
+		LTBOOL			m_bShoulderIn;			// ...it's there now
+		uint32			m_nShoulderUntil;		// ...and H is held till then (GetTickCount, 0 = not)
 		char			m_szIni[MAX_PATH];		// avp2xr.ini, read again for [LeftHand] on each weapon change
 		LTVector		m_vArmOffset;			// this weapon's left hand offset and angle ([LeftHand] or the defaults)
 		LTRotation		m_rArmAngle;
