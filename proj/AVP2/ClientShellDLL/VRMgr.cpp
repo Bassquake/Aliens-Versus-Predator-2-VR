@@ -396,6 +396,12 @@ static LTFLOAT YawOf(const LTRotation &rRot)
 #define VR_TWOHAND_MIN			0.05f
 #define VR_TWOHAND_ANGLE		80.0f
 
+// The pistol held with both hands: the left palm from the right one, model units (about 4.6 cm a
+// unit at the usual 12x): to the left, a little down and back; moved per weapon by [TwoHandGrip]
+#define VR_HOLD_RIGHT			-0.32f
+#define VR_HOLD_UP				-0.10f
+#define VR_HOLD_FORWARD			-0.05f
+
 // Standard (right-hand rule) cross product. LTVector::Cross returns the reverse.
 static LTVector CrossStd(const LTVector &a, const LTVector &b)
 {
@@ -611,6 +617,9 @@ VRMgr::VRMgr()
 	m_rArmAngle.Init();
 	m_fTwoHandDown = 0.0f;
 	m_fTwoHandBlend = 0.0f;
+	m_bHandOnGun = LTFALSE;
+	m_fHoldBlend = 0.0f;
+	m_vRightPalm.Init();
 	m_bTwoHandOnGun = LTTRUE;
 	m_bTwoHandGrip = LTFALSE;
 	m_vTwoHandGrip.Init();
@@ -2029,6 +2038,19 @@ void VRMgr::GetEyeCamera(int nEye, HCAMERA hCamera, const LTVector &vPos, const 
 				WEAPON *pWep = pWeaponModel ? pWeaponModel->GetWeapon() : LTNULL;
 				bHeld = pWep && (!stricmp(pWep->szName, "Spear") || !stricmp(pWep->szName, "Spear_Gun"));
 			}
+			// The Marine's pistol is held with both hands together: the left hand goes onto it beside
+			// the right (see PlaceLeftArm) and the aim stays the right controller's
+			m_bHandOnGun = LTFALSE;
+			if(bHeld && !IsPredator(nButeSet))
+			{
+				CWeaponModel *pWeaponModel = g_pGameClientShell->GetWeaponModel();
+				WEAPON *pWep = pWeaponModel ? pWeaponModel->GetWeapon() : LTNULL;
+				if(pWep && !stricmp(pWep->szName, "Pistol"))
+				{
+					m_bHandOnGun = LTTRUE;
+					bHeld = LTFALSE;
+				}
+			}
 			m_bTwoHanded = bHeld && fMetres > VR_TWOHAND_MIN &&
 						   fCos > (LTFLOAT)cos(MATH_DEGREES_TO_RADIANS(VR_TWOHAND_ANGLE));
 
@@ -2057,7 +2079,7 @@ void VRMgr::GetEyeCamera(int nEye, HCAMERA hCamera, const LTVector &vPos, const 
 			}
 		}
 		else
-			m_bTwoHanded = LTFALSE;
+			m_bTwoHanded = m_bHandOnGun = LTFALSE;
 	}
 
 	// The engine only does symmetric frustums, so cover the eye's (asymmetric) FOV with a
@@ -2375,6 +2397,7 @@ void VRMgr::PlaceWeapon()
 	}
 
 	m_vWeaponOrigin = vOrigin;
+	m_vRightPalm = vPalm;
 
 	// Two-handed with the hand on the gun, the left controller holds where the animation's left hand
 	// is (the smartgun's side handle, not its barrel): that palm from the right hand, in the gun's
@@ -2802,6 +2825,27 @@ void VRMgr::PlaceLeftArm(HOBJECT hWeapon, WEAPON *pWeapon, int nState)
 	if(m_bArmMatch)
 		rArm = rArm * m_rArmMirror * m_rArmHand.Conjugate();
 	LTVector vTarget = Rotate(rToModel, m_vOffPos + Rotate(rLeft, m_vArmOffset) - m_vWeaponOrigin) / m_fWeaponScale;
+
+	// The pistol held with both hands (m_bHandOnGun): the left hand beside the right one on the gun,
+	// turned to mirror it (palm to palm), VR_HOLD_* from the right palm in model space plus [TwoHandGrip]
+	// (cm in the gun's frame), whatever the controller does; eased on and off
+	LTFLOAT fHoldStep = g_pLTClient->GetFrameTime() / 0.15f;
+	if(m_bHandOnGun)
+		m_fHoldBlend = (m_fHoldBlend + fHoldStep < 1.0f) ? m_fHoldBlend + fHoldStep : 1.0f;
+	else
+		m_fHoldBlend = (m_fHoldBlend - fHoldStep > 0.0f) ? m_fHoldBlend - fHoldStep : 0.0f;
+	if(m_fHoldBlend > 0.0f && m_fWeaponScale > 0.0f)
+	{
+		LTRotation rHold;
+		rHold.Init();
+		if(m_bArmMatch)
+			rHold = m_rArmMirror * m_rArmHand.Conjugate();
+		LTVector vHold = m_vRightPalm + LTVector(VR_HOLD_RIGHT, VR_HOLD_UP, VR_HOLD_FORWARD) + m_vTwoHandMove / m_fWeaponScale;
+		LTFLOAT fBlend = m_fHoldBlend * m_fHoldBlend * (3.0f - 2.0f * m_fHoldBlend);
+		LTRotation rFrom = rArm;
+		g_pLTClient->InterpolateRotation(&rArm, &rFrom, &rHold, fBlend);
+		vTarget = vTarget + (vHold - vTarget) * fBlend;
+	}
 
 	// Two-handed, the gun points at the left hand, so the barrel runs through it. With
 	// TwoHandedHandOnGun the hand snaps to where the weapon's animation holds it (its grip on the

@@ -381,6 +381,9 @@ class VRMgr
 		LTFLOAT			m_fTwoHandDown;			// avp2xr.ini TwoHandedHandDown, world units: the left hand goes this far
 												// below the gun while two-handed, so it doesn't sit in the barrel
 		LTFLOAT			m_fTwoHandBlend;		// 0-1, eases the hand down and back up
+		LTBOOL			m_bHandOnGun;			// the pistol held with both hands (TwoHand held): the left hand
+		LTFLOAT			m_fHoldBlend;			// ...goes beside the right one on it, eased by this (0-1)
+		LTVector		m_vRightPalm;			// the right palm in model space (this frame's weapon)
 		LTBOOL			m_bTwoHandOnGun;		// avp2xr.ini TwoHandedHandOnGun: two-handed, the left hand goes where the
 												// weapon's animation holds it (on the gun) instead of following the controller
 		LTBOOL			m_bTwoHandGrip;			// m_vTwoHandGrip is set: two-handed, the gun turns so this point is
