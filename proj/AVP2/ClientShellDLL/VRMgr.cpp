@@ -78,6 +78,16 @@ static VarTrack		g_vtVRFlashForward;
 #define VR_SHOULDER_LEAVE		0.05f
 #define VR_SHOULDER_PRESS_MS	150
 
+// Reloading by hand: the left hand to the lower back (for a magazine; from the head, facing where it
+// faces, metres: below VR_BACK_DOWN, behind VR_BACK_BEHIND, within VR_BACK_SIDE of the middle, so a
+// hand hanging at the side doesn't count), then within VR_RELOAD_REACH of the right controller (the
+// gun) inside VR_RELOAD_WINDOW_MS of leaving the back. Reload is then held for VR_SHOULDER_PRESS_MS.
+#define VR_BACK_DOWN			-0.45f
+#define VR_BACK_BEHIND			-0.12f
+#define VR_BACK_SIDE			0.25f
+#define VR_RELOAD_REACH			0.25f
+#define VR_RELOAD_WINDOW_MS		3000
+
 // The hacking device's plug: seconds to go onto the panel it hacks and back, and how far its tip is
 // past its last node along the cable (model units, from the model: the node stays that far out)
 #define VR_HACK_ATTACH_TIME		0.15f
@@ -585,6 +595,9 @@ VRMgr::VRMgr()
 	m_bShoulderHack = LTTRUE;
 	m_bShoulderIn = LTFALSE;
 	m_nShoulderUntil = 0;
+	m_bReloadGesture = LTTRUE;
+	m_bReloadBack = LTFALSE;
+	m_nReloadArmed = m_nReloadUntil = 0;
 	m_bHackModel = m_bHackCable = LTFALSE;
 	m_nHackLink = -1;
 	m_bHackTarget = LTFALSE;
@@ -873,7 +886,9 @@ LTBOOL VRMgr::FindApi()
 				m_bLeftMatch = !szValue[0] || !strchr("nN0fF", szValue[0]);
 				GetPrivateProfileStringA("VR", "ShoulderHack", "yes", szValue, sizeof(szValue), szIni);
 				m_bShoulderHack = !szValue[0] || !strchr("nN0fF", szValue[0]);
-				VRLog("Settings: ShoulderHack=%s", m_bShoulderHack ? "yes" : "no");
+				GetPrivateProfileStringA("VR", "ReloadGesture", "yes", szValue, sizeof(szValue), szIni);
+				m_bReloadGesture = !szValue[0] || !strchr("nN0fF", szValue[0]);
+				VRLog("Settings: ShoulderHack=%s ReloadGesture=%s", m_bShoulderHack ? "yes" : "no", m_bReloadGesture ? "yes" : "no");
 				strncpy(m_szIni, szIni, sizeof(m_szIni) - 1);
 				m_szIni[sizeof(m_szIni) - 1] = 0;
 				VRLog("Settings: LeftArm=%s LeftHandMatch=%s LeftHandForward=%.1f LeftHandUp=%.1f LeftHandRight=%.1f (cm) "
@@ -1300,6 +1315,54 @@ void VRMgr::UpdateButtons()
 			nNow |= AVP2XR_BTN_HACK;
 		else
 			m_nShoulderUntil = 0;
+	}
+
+	// Reload by hand (avp2xr.ini ReloadGesture): the left hand to the lower back, as for a magazine,
+	// then to the gun in the right hand (VR_BACK_*, VR_RELOAD_*): Reload is held for a moment
+	uint32 nTick = GetTickCount();
+	if(m_bReloadGesture && m_bLastFramePlayerView && m_bLastFrameInput && m_bLastFrameAimWorld && m_Input.offValid &&
+	   !m_bAdjusting && g_pGameClientShell->GetInterfaceMgr()->GetGameState() == GS_PLAYING)
+	{
+		LTFLOAT fScale = g_vtVRWorldScale.GetFloat();
+		if(fScale <= 0.0f)
+			fScale = 1.0f;
+		LTVector v = Rotate(YawRotation(m_fHeadYaw).Conjugate(), m_vOffPos - m_vHeadWorld) / fScale;
+		LTBOOL bBack = v.y < VR_BACK_DOWN && v.z < VR_BACK_BEHIND && (LTFLOAT)fabs(v.x) < VR_BACK_SIDE;
+		if(bBack)
+		{
+			if(!m_bReloadBack)
+				VRLog("Reload: left hand at the lower back (%.2f %.2f %.2f m from the head)", v.x, v.y, v.z);
+			m_nReloadArmed = nTick + VR_RELOAD_WINDOW_MS;
+			if(!m_nReloadArmed)
+				m_nReloadArmed = 1;
+		}
+		else if(m_nReloadArmed)
+		{
+			LTFLOAT fToGun = (m_vOffPos - m_vAimPos).Mag() / fScale;
+			if((int32)(nTick - m_nReloadArmed) >= 0)
+				m_nReloadArmed = 0;
+			else if(fToGun < VR_RELOAD_REACH)
+			{
+				m_nReloadArmed = 0;
+				m_nReloadUntil = nTick + VR_SHOULDER_PRESS_MS;
+				if(!m_nReloadUntil)
+					m_nReloadUntil = 1;
+				VRLog("Reload: left hand to the gun (%.2f m): reloading", fToGun);
+			}
+		}
+		m_bReloadBack = bBack;
+	}
+	else
+	{
+		m_bReloadBack = LTFALSE;
+		m_nReloadArmed = 0;
+	}
+	if(m_nReloadUntil)
+	{
+		if((int32)(nTick - m_nReloadUntil) < 0)
+			nNow |= AVP2XR_BTN_RELOAD;
+		else
+			m_nReloadUntil = 0;
 	}
 
 	m_nIgnoreButtons &= nNow;
