@@ -564,7 +564,6 @@ VRMgr::VRMgr()
 	memset(m_fGunFit, 0, sizeof(m_fGunFit));
 	memset(m_fLeftFit, 0, sizeof(m_fLeftFit));
 	memset(m_fMuzzleFit, 0, sizeof(m_fMuzzleFit));
-	m_szHandsIni[0] = 0;
 	m_bAdjusting = LTFALSE;
 	m_bAdjustLive = LTFALSE;
 	m_nAdjustHand = 0;
@@ -874,10 +873,6 @@ LTBOOL VRMgr::FindApi()
 				memcpy(m_fLeftDefault, fLeftDefault, sizeof(m_fLeftDefault));
 				memcpy(m_fGunFit, fGunDefault, sizeof(m_fGunFit));
 				memcpy(m_fLeftFit, fLeftDefault, sizeof(m_fLeftFit));
-				if(GetEnvironmentVariableA("LOCALAPPDATA", m_szHandsIni, MAX_PATH))
-					strcat(m_szHandsIni, "\\avp2xr\\hands.ini");
-				else
-					m_szHandsIni[0] = 0;
 				GetPrivateProfileStringA("VR", "TwoHandedHandDown", "6", szValue, sizeof(szValue), szIni);
 				m_fTwoHandDown = (LTFLOAT)atof(szValue) * fUnitsPerCm;
 				GetPrivateProfileStringA("VR", "TwoHandedHandOnGun", "yes", szValue, sizeof(szValue), szIni);
@@ -1474,8 +1469,7 @@ void VRMgr::UpdateButtons()
 // ----------------------------------------------------------------------- //
 // Each weapon's fit in the hands. [Gun] <weapon> = forward up right [pitch yaw roll] and
 // [LeftHand] <weapon> = pitch yaw roll [forward up right] (cm, degrees), in place of the Gun* and
-// LeftHand* settings. hands.ini (written by adjust mode) comes before avp2xr.ini, so a weapon
-// fitted in the headset keeps that fit; delete its line there to go back to avp2xr.ini's.
+// LeftHand* settings, all from avp2xr.ini (adjust mode logs its lines to cshell.log to copy in).
 
 LTBOOL VRMgr::ReadFitLine(const char *szSection, const char *szWeapon, char *szValue, int nSize, const char **pszFrom)
 {
@@ -1483,13 +1477,6 @@ LTBOOL VRMgr::ReadFitLine(const char *szSection, const char *szWeapon, char *szV
 	*pszFrom = "";
 	if(!szWeapon[0])
 		return LTFALSE;
-	if(m_szHandsIni[0])
-		GetPrivateProfileStringA(szSection, szWeapon, "", szValue, nSize, m_szHandsIni);
-	if(szValue[0])
-	{
-		*pszFrom = "hands.ini";
-		return LTTRUE;
-	}
 	if(m_szIni[0])
 		GetPrivateProfileStringA(szSection, szWeapon, "", szValue, nSize, m_szIni);
 	*pszFrom = "avp2xr.ini";
@@ -1611,7 +1598,8 @@ void VRMgr::ApplyTwoHandFit()
 //         is turned; the trigger still fires, to see it), left hand on the gun ([TwoHandGrip]: where
 //         the left controller holds it two-handed; moving only), Jump = turning / moving, Vision =
 //         undo its changes
-//   Adjust again (or leaving play, or changing weapon) = done: changes are saved to hands.ini
+//   Adjust again (or leaving play, or changing weapon) = done: the changed lines for avp2xr.ini go to
+//   cshell.log
 // The current values are shown as game messages.
 
 // Degrees and cm per second at full push (it's slower near the centre, for fine changes)
@@ -1742,7 +1730,7 @@ void VRMgr::EndAdjust()
 
 	const char *szName = m_pAdjustWeapon ? m_pAdjustWeapon->szName : "";
 	char szMsg[256];
-	if(!szName[0] || !m_szHandsIni[0] || (!m_bAdjustChanged[0] && !m_bAdjustChanged[1] && !m_bAdjustChanged[2] && !m_bAdjustChanged[3]))
+	if(!szName[0] || (!m_bAdjustChanged[0] && !m_bAdjustChanged[1] && !m_bAdjustChanged[2] && !m_bAdjustChanged[3]))
 	{
 		if(g_pMessageMgr)
 			g_pMessageMgr->AddMessage((char*)"Adjust: off (nothing changed)");
@@ -1750,50 +1738,33 @@ void VRMgr::EndAdjust()
 		return;
 	}
 
-	// A note at the top of a new hands.ini
-	if(GetFileAttributesA(m_szHandsIni) == INVALID_FILE_ATTRIBUTES)
-	{
-		FILE *pFile = fopen(m_szHandsIni, "w");
-		if(pFile)
-		{
-			fputs("; The weapons' fit in the hands, saved by adjust mode in the headset. These come before the\n"
-				  "; [Gun] and [LeftHand] lines in avp2xr.ini; delete a line here to use avp2xr.ini's again.\n"
-				  "; [Gun] <weapon> = forward up right  pitch yaw roll\n"
-				  "; [LeftHand] <weapon> = pitch yaw roll  forward up right\n"
-				  "; [Muzzle] <weapon> = forward up right  pitch yaw roll (where its shots start, moved from the model's\n"
-				  ";   muzzle, and how its flash is turned)\n"
-				  "; [TwoHandGrip] <weapon> = forward up right (where the left controller holds the gun two-handed)\n\n", pFile);
-			fclose(pFile);
-		}
-	}
-
+	// The settings all live in avp2xr.ini (deploy\avp2xr.ini, installed by Install_avp2vr.bat), which
+	// the game can't write (writing it would make a hidden VirtualStore copy that hides the installed
+	// one): the changed lines go to cshell.log, ready to copy into avp2xr.ini. Until the weapon
+	// changes, the fit stays as adjusted.
 	char szValue[128];
 	if(m_bAdjustChanged[0])
 	{
 		sprintf(szValue, "%.1f %.1f %.1f  %.1f %.1f %.1f", m_fGunFit[0], m_fGunFit[1], m_fGunFit[2], m_fGunFit[3], m_fGunFit[4], m_fGunFit[5]);
-		WritePrivateProfileStringA("Gun", szName, szValue, m_szHandsIni);
-		VRLog("Adjust: saved [Gun] %s=%s to %s", szName, szValue, m_szHandsIni);
+		VRLog("Adjust: for avp2xr.ini [Gun]: %s = %s", szName, szValue);
 	}
 	if(m_bAdjustChanged[1])
 	{
 		sprintf(szValue, "%.1f %.1f %.1f  %.1f %.1f %.1f", m_fLeftFit[3], m_fLeftFit[4], m_fLeftFit[5], m_fLeftFit[0], m_fLeftFit[1], m_fLeftFit[2]);
-		WritePrivateProfileStringA("LeftHand", szName, szValue, m_szHandsIni);
-		VRLog("Adjust: saved [LeftHand] %s=%s to %s", szName, szValue, m_szHandsIni);
+		VRLog("Adjust: for avp2xr.ini [LeftHand]: %s = %s", szName, szValue);
 	}
 	if(m_bAdjustChanged[2])
 	{
 		sprintf(szValue, "%.1f %.1f %.1f  %.1f %.1f %.1f", m_fMuzzleFit[0], m_fMuzzleFit[1], m_fMuzzleFit[2],
 			m_fMuzzleFit[3], m_fMuzzleFit[4], m_fMuzzleFit[5]);
-		WritePrivateProfileStringA("Muzzle", szName, szValue, m_szHandsIni);
-		VRLog("Adjust: saved [Muzzle] %s=%s to %s", szName, szValue, m_szHandsIni);
+		VRLog("Adjust: for avp2xr.ini [Muzzle]: %s = %s", szName, szValue);
 	}
 	if(m_bAdjustChanged[3])
 	{
 		sprintf(szValue, "%.1f %.1f %.1f", m_fTwoHandFit[0], m_fTwoHandFit[1], m_fTwoHandFit[2]);
-		WritePrivateProfileStringA("TwoHandGrip", szName, szValue, m_szHandsIni);
-		VRLog("Adjust: saved [TwoHandGrip] %s=%s to %s", szName, szValue, m_szHandsIni);
+		VRLog("Adjust: for avp2xr.ini [TwoHandGrip]: %s = %s", szName, szValue);
 	}
-	sprintf(szMsg, "Adjust: saved%s%s%s%s for %s (hands.ini)", m_bAdjustChanged[0] ? " right hand" : "",
+	sprintf(szMsg, "Adjust:%s%s%s%s for %s written to cshell.log (copy into avp2xr.ini)", m_bAdjustChanged[0] ? " right hand" : "",
 		m_bAdjustChanged[1] ? " left hand" : "", m_bAdjustChanged[2] ? " muzzle" : "",
 		m_bAdjustChanged[3] ? " left hand on gun" : "", szName);
 	if(g_pMessageMgr)

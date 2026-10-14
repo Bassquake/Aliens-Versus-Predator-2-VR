@@ -88,9 +88,10 @@ Stereo (option 2)
   Adjust mode (avp2xr.ini AdjustHandsLive=yes, default no; AVP2XR_BTN_ADJUST, Touch/Index: left stick
   click + right B, a combo binding, which the proxy only binds with AdjustHandsLive=yes): fits the weapon in hand to the right or left
   hand with the sticks (VRMgr::UpdateAdjust; the controls are in avp2xr.ini above [Gun]). The game gets no
-  controller input meanwhile. Saved to %LOCALAPPDATA%\avp2xr\hands.ini (not avp2xr.ini: the game can't
-  write to Program Files, Windows would put the copy in VirtualStore), which is read before avp2xr.ini's
-  [Gun]/[LeftHand].
+  controller input meanwhile. The fits are only read from avp2xr.ini (everything is in deploy\). On
+  leaving, the changed lines are written to cshell.log ("Adjust: for avp2xr.ini [Gun]: ...") to copy into
+  deploy\avp2xr.ini: the game can't write avp2xr.ini in Program Files (Windows would put a copy in
+  VirtualStore, which would then hide the installed one).
   Recenter: hold the Meta/system button (the runtime recenters; the proxy passes the LOCAL space change on as
   Avp2XrInput::recenterCount and the game re-anchors: view faces the aim, eyes back at the camera height).
   Tests: test\stereotest.cpp (proxy stereo API), test\convtest.cpp (OpenXR -> LithTech pose conversion).

@@ -209,7 +209,7 @@ class VRMgr
 		void		UpdateCutsceneSkip();
 
 		// Each weapon's fit in the hands ([Gun] and [LeftHand]): read at each change of weapon, from
-		// %LOCALAPPDATA%\avp2xr\hands.ini (what adjust mode saves) before avp2xr.ini
+		// avp2xr.ini
 		void		ReadGunFit(const char *szWeapon);
 		void		ReadLeftFit(const char *szWeapon);
 		void		ApplyGunFit();
@@ -218,7 +218,8 @@ class VRMgr
 		LTBOOL		ReadFitLine(const char *szSection, const char *szWeapon, char *szValue, int nSize, const char **pszFrom);
 
 		// Adjust mode (the Adjust button): the sticks fit the current weapon in the right or left
-		// hand while the game gets no controller input; Adjust again saves it to hands.ini
+		// hand while the game gets no controller input; Adjust again writes the lines for avp2xr.ini
+		// to cshell.log
 		void		UpdateAdjust(unsigned int nRaw, unsigned int nPressed);
 		void		EndAdjust();
 		void		ShowAdjust(LTBOOL bNow);
@@ -282,7 +283,6 @@ class VRMgr
 												// gun's frame): moves where shots, the flash and the flame start from, and
 												// turns the flash (its sprites and particles; the shots keep to the aim)
 		LTRotation		m_rMuzzleRot;			// the flash's turn in the world (the model's, then the [Muzzle] angle)
-		char			m_szHandsIni[MAX_PATH];	// %LOCALAPPDATA%\avp2xr\hands.ini
 		LTBOOL			m_bAdjusting;			// adjust mode is on
 		LTBOOL			m_bAdjustLive;			// avp2xr.ini AdjustHandsLive: the Adjust button turns it on
 		int				m_nAdjustHand;			// 0 = right ([Gun]), 1 = left ([LeftHand]), 2 = the muzzle ([Muzzle])
