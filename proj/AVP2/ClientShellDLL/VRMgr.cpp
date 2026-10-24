@@ -391,6 +391,9 @@ static LTFLOAT YawOf(const LTRotation &rRot)
 	return (LTFLOAT)atan2(-vR.z, vR.x);
 }
 
+// How fast the Alien's view turns onto a new surface (1/s: about 95% of the way in 0.4 s)
+#define VR_SURFACE_RATE			8.0f
+
 // Two-handed aiming, while the TwoHand button is held: the off hand must be at least this far
 // (metres) from the gun hand and within this angle of where it points
 #define VR_TWOHAND_MIN			0.05f
@@ -504,6 +507,7 @@ VRMgr::VRMgr()
 	m_hPlayerCamera = CAMERAMGR_INVALID;
 	m_bAnchorValid = LTFALSE;
 	m_fAnchorYaw = 0.0f;
+	m_rSurface.Init();
 	memset(m_fHeadRef, 0, sizeof(m_fHeadRef));
 	m_bInput = LTFALSE;
 	m_nRecenterCount = 0;
@@ -542,7 +546,7 @@ VRMgr::VRMgr()
 	m_nButtons = 0;
 	m_bObjectivesOn = LTFALSE;
 	m_bLastFrameInput = LTFALSE;
-	m_fHeadYaw = 0.0f;
+	m_rHeadFrame.Init();
 	m_bAimWorld = LTFALSE;
 	m_bLastFrameAimWorld = LTFALSE;
 	m_bMuzzleWorld = LTFALSE;
@@ -1283,7 +1287,7 @@ void VRMgr::UpdateButtons()
 	   g_pGameClientShell->GetInterfaceMgr()->GetGameState() == GS_PLAYING)
 	{
 		LTFLOAT fScale = g_vtVRWorldScale.GetFloat();
-		LTVector v = Rotate(YawRotation(m_fHeadYaw).Conjugate(), m_vOffPos - m_vHeadWorld) / (fScale > 0.0f ? fScale : 1.0f);
+		LTVector v = Rotate(m_rHeadFrame.Conjugate(), m_vOffPos - m_vHeadWorld) / (fScale > 0.0f ? fScale : 1.0f);
 		LTFLOAT m = m_bShoulderIn ? VR_SHOULDER_LEAVE : 0.0f;
 		LTBOOL bIn = v.x > VR_SHOULDER_LEFT_MAX - m && v.x < VR_SHOULDER_LEFT_MIN + m &&
 					 v.y > VR_SHOULDER_DOWN - m && v.y < VR_SHOULDER_UP + m &&
@@ -1330,7 +1334,7 @@ void VRMgr::UpdateButtons()
 		LTFLOAT fScale = g_vtVRWorldScale.GetFloat();
 		if(fScale <= 0.0f)
 			fScale = 1.0f;
-		LTVector v = Rotate(YawRotation(m_fHeadYaw).Conjugate(), m_vOffPos - m_vHeadWorld) / fScale;
+		LTVector v = Rotate(m_rHeadFrame.Conjugate(), m_vOffPos - m_vHeadWorld) / fScale;
 		LTBOOL bBack = v.y < VR_BACK_DOWN && v.z < VR_BACK_BEHIND && (LTFLOAT)fabs(v.x) < VR_BACK_SIDE;
 		if(bBack)
 		{
@@ -1848,6 +1852,9 @@ LTBOOL VRMgr::BeginFrame()
 			m_bAnchorValid = LTFALSE;
 		}
 
+		// Straight onto the surface when re-anchoring, smoothly otherwise
+		UpdateSurface(!m_bAnchorValid);
+
 		// Right stick left/right turns the view (avp2xr.ini TurnMode): smoothly, faster the further
 		// it's pushed, or in snaps, one per push. The body follows the head, so it turns too. Only
 		// while left/right is the stick's main direction, so weapon cycling (up/down) doesn't turn.
@@ -1896,6 +1903,67 @@ LTBOOL VRMgr::BeginFrame()
 
 // ----------------------------------------------------------------------- //
 
+// The Alien's view stays square to the surface it's on: on a wall or the ceiling that's its floor,
+// so on the ceiling the room is upside down. m_rSurface tilts the tracking space from the world's
+// up to the body's (none for the others, or on the floor). The body turns onto a new surface at
+// once, so the view follows it smoothly; turning on from the last tilt, rather than working it out
+// from the body's up afresh, keeps where the view faces steady through the change.
+void VRMgr::UpdateSurface(LTBOOL bSnap)
+{
+	LTVector vTarget(0.0f, 1.0f, 0.0f);
+	HCAMERA hCinematic = g_pGameClientShell->GetCinematicCamera();
+	if(IsAlien(g_pGameClientShell->GetPlayerStats()->GetButeSet()) && g_pGameClientShell->GetPlayerState() == PS_ALIVE &&
+	   !g_pGameClientShell->GetCameraMgr()->GetCameraActive(hCinematic))
+	{
+		LTVector vUp = g_pGameClientShell->GetPlayerMovement()->GetUp();
+		LTFLOAT fLen = vUp.Mag();
+		// (the game leaves the body up to a degree off the world's up when it stands it upright)
+		if(fLen > 0.5f && vUp.y < 0.9999f * fLen)
+			vTarget = vUp / fLen;
+	}
+
+	LTVector vUp = Rotate(m_rSurface, LTVector(0.0f, 1.0f, 0.0f));
+	LTFLOAT fCos = vUp.Dot(vTarget);
+	if(fCos > 1.0f) fCos = 1.0f;
+	if(fCos < -1.0f) fCos = -1.0f;
+	LTFLOAT fAngle = (LTFLOAT)acos(fCos);
+	if(fAngle > 0.0001f)
+	{
+		LTFLOAT fStep = fAngle;
+		if(!bSnap && fAngle > 0.002f)
+		{
+			LTFLOAT fFrameTime = g_pLTClient->GetFrameTime();
+			if(fFrameTime > 0.1f)
+				fFrameTime = 0.1f;
+			fStep = fAngle * (1.0f - (LTFLOAT)exp(-VR_SURFACE_RATE * fFrameTime));
+		}
+
+		// Turn about the axis square to both ups; straight over (floor to ceiling), about the
+		// head's right, so the view tips forward or back over
+		LTVector vAxis = CrossStd(vUp, vTarget);
+		if(vAxis.MagSqr() < 0.000001f)
+		{
+			LTVector vR = Rotate(m_rHeadWorld, LTVector(1.0f, 0.0f, 0.0f));
+			vAxis = vR - vUp * vUp.Dot(vR);
+			if(vAxis.MagSqr() < 0.000001f)
+				vAxis = Rotate(m_rSurface, LTVector(1.0f, 0.0f, 0.0f));
+		}
+		vAxis.Norm();
+		LTFLOAT fSin = (LTFLOAT)sin(fStep * 0.5f);
+		m_rSurface = LTRotation(vAxis.x * fSin, vAxis.y * fSin, vAxis.z * fSin, (LTFLOAT)cos(fStep * 0.5f)) * m_rSurface;
+	}
+
+	// Back on the floor what's left is only a turn (from going round the walls), if anything: it
+	// goes into the anchor's yaw, so the view faces the same way
+	if(vTarget.y >= 1.0f && Rotate(m_rSurface, LTVector(0.0f, 1.0f, 0.0f)).y > 0.99999f)
+	{
+		m_fAnchorYaw += YawOf(m_rSurface);
+		m_rSurface.Init();
+	}
+}
+
+// ----------------------------------------------------------------------- //
+
 void VRMgr::GetEyeCamera(int nEye, HCAMERA hCamera, const LTVector &vPos, const LTRotation &rRot,
 						 LTVector &vEyePos, LTRotation &rEyeRot,
 						 LTFLOAT &fFOVX, LTFLOAT &fFOVY, LTRect &rRect)
@@ -1916,7 +1984,7 @@ void VRMgr::GetEyeCamera(int nEye, HCAMERA hCamera, const LTVector &vPos, const 
 		// game's own camera height and only real head movement from there moves the view.
 		if(!m_bAnchorValid)
 		{
-			m_fAnchorYaw = fYaw;
+			m_fAnchorYaw = YawOf(m_rSurface.Conjugate() * rRot);
 			for(int i = 0; i < 3; i++)
 				m_fHeadRef[i] = (m_Views[0].position[i] + m_Views[1].position[i]) * 0.5f;
 			m_bAnchorValid = LTTRUE;
@@ -1924,9 +1992,13 @@ void VRMgr::GetEyeCamera(int nEye, HCAMERA hCamera, const LTVector &vPos, const 
 		fYaw = m_fAnchorYaw;
 	}
 
+	// The player's view is tilted onto the Alien's surface too (see UpdateSurface)
 	LTRotation rYaw = YawRotation(fYaw);
 	if(hCamera == m_hPlayerCamera)
+	{
+		rYaw = m_rSurface * rYaw;
 		rEyeRot = rYaw * rHead;
+	}
 	else
 		rEyeRot = rRot * rHead;	// other cameras (cutscenes) keep their scripted rotation
 
@@ -2158,8 +2230,9 @@ void VRMgr::EndFrame()
 	m_bLastFrameMuzzle = m_bLastFrameStereo && m_bMuzzleWorld;
 	if(m_bLastFrameStereo && m_bAnchorValid)
 	{
-		m_rHeadWorld = YawRotation(m_fAnchorYaw) * FromXr(m_Views[0].orientation);
-		m_fHeadYaw = YawOf(m_rHeadWorld);
+		LTRotation rTracked = YawRotation(m_fAnchorYaw) * FromXr(m_Views[0].orientation);
+		m_rHeadWorld = m_rSurface * rTracked;
+		m_rHeadFrame = m_rSurface * YawRotation(YawOf(rTracked));
 		if(m_bPlayerView)
 			m_vHeadWorld = m_vHeadPos;
 	}
@@ -2197,9 +2270,7 @@ LTBOOL VRMgr::GetMoveDirection(LTVector &vDir) const
 	if(fLength > 1.0f) fLength = 1.0f;
 
 	// Stick up = where the head faces, stick right = the head's right
-	LTFLOAT fSin = (LTFLOAT)sin(m_fHeadYaw), fCos = (LTFLOAT)cos(m_fHeadYaw);
-	LTVector vForward(fSin, 0.0f, fCos), vRight(fCos, 0.0f, -fSin);
-	vDir = (vRight * x + vForward * y) * (fLength / fMag);
+	vDir = Rotate(m_rHeadFrame, LTVector(x, 0.0f, y)) * (fLength / fMag);
 	return LTTRUE;
 }
 
@@ -2227,7 +2298,7 @@ LTBOOL VRMgr::GetAimDirection(LTVector &vDir) const
 	if(!m_bLastFrameInput || !m_Input.aimValid)
 		return LTFALSE;
 
-	vDir = Rotate(YawRotation(m_fAnchorYaw) * FromXr(m_Input.aimOrientation), LTVector(0.0f, 0.0f, 1.0f));
+	vDir = Rotate(m_rSurface * YawRotation(m_fAnchorYaw) * FromXr(m_Input.aimOrientation), LTVector(0.0f, 0.0f, 1.0f));
 	return LTTRUE;
 }
 

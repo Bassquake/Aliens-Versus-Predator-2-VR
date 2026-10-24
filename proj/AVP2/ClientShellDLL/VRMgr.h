@@ -195,6 +195,7 @@ class VRMgr
 
 	private:
 		LTBOOL		FindApi();
+		void		UpdateSurface(LTBOOL bSnap);
 		void		PlaceLeftArm(HOBJECT hWeapon, struct WEAPON *pWeapon, int nState);
 		void		PlaceRailOverlay(const LTVector &vEyePos, const LTRotation &rEyeRot);
 		void		PlaceArmCopy(HOBJECT hWeapon, const LTVector &vMove, const LTRotation &rArm);
@@ -245,7 +246,8 @@ class VRMgr
 		LTBOOL			m_bLastFrameStereo;
 		HCAMERA			m_hPlayerCamera;
 		LTBOOL			m_bAnchorValid;
-		LTFLOAT			m_fAnchorYaw;			// world yaw the player's view is anchored to
+		LTFLOAT			m_fAnchorYaw;			// world yaw the player's view is anchored to (before m_rSurface)
+		LTRotation		m_rSurface;				// the view's tilt onto the surface the Alien is on (see UpdateSurface)
 		float			m_fHeadRef[3];			// OpenXR head position at anchoring = the game camera position
 		Avp2XrInput		m_Input;				// controller state for this frame
 		LTBOOL			m_bInput;
@@ -321,7 +323,7 @@ class VRMgr
 		unsigned int	m_nButtons;				// AVP2XR_BTN_* held, as sent to the game
 		LTBOOL			m_bObjectivesOn;		// the Objectives button's toggle: the objectives are shown
 		LTBOOL			m_bLastFrameInput;		// m_Input holds usable input from the last stereo frame
-		LTFLOAT			m_fHeadYaw;				// world yaw the head faced in the last stereo frame
+		LTRotation		m_rHeadFrame;			// where the head faced along the floor (or the Alien's surface), last stereo frame
 		LTBOOL			m_bAimWorld;			// m_vAimPos/m_rAimRot are set for this frame
 		LTBOOL			m_bLastFrameAimWorld;	// ...and were set in the last stereo frame
 		LTBOOL			m_bMuzzleWorld;			// m_vMuzzlePos is set for this frame
